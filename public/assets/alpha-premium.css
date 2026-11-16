@@ -33,6 +33,7 @@
 .alpha-category-icon{height:65px;display:grid;place-items:center;color:#e1f2e8;position:relative;z-index:1}
 .alpha-category-icon svg{width:43px;height:43px;transition:transform .24s,color .24s,filter .24s}
 .storefront[data-store-theme=alpha-premium] .alpha-category-label{display:flex;align-items:center;justify-content:center;background:transparent;border:0;padding:0 8px 16px;color:#e9f4ed;position:relative}
+.storefront[data-store-theme=alpha-premium] .alpha-categories .alpha-category-label{color:#e9f4ed}
 .storefront[data-store-theme=alpha-premium] .alpha-category-label strong{font-size:12px;font-weight:600;text-align:center;overflow-wrap:normal}
 .storefront[data-store-theme=alpha-premium] .alpha-category-label>span{display:none}
 .storefront[data-store-theme=alpha-premium] .alpha-categories>a:hover,.storefront[data-store-theme=alpha-premium] .alpha-categories>a:focus-visible{transform:translateY(-5px);border-color:#00b768;background:linear-gradient(145deg,#155238,#0e3021);box-shadow:0 10px 26px #0005,0 0 22px #00a75b24}
