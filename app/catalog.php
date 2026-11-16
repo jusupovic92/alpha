@@ -7,6 +7,7 @@ function heroProducts():array {
 }
 function imageSource(?string $url):string {
     $url=(string)$url;
+    if(preg_match('~^assets/alpha/[a-z0-9-]+\.svg$~D',$url))return $url;
     if(preg_match('~^uploads/[a-f0-9]{32}\.(jpg|png|webp)$~D',$url))return $url;
     if(str_starts_with($url,'https://')&&filter_var($url,FILTER_VALIDATE_URL))return $url;
     return 'assets/product-placeholder.svg';

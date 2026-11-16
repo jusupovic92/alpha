@@ -35,3 +35,5 @@ jobs:
       - run: node tests/setup.mjs
       - run: node tests/smtp.mjs
       - run: php tests/backups.php
+
+      - run: php tests/alpha.php

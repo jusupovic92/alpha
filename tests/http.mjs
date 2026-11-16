@@ -191,5 +191,17 @@ try{
  assert.equal((await request('admin.php?page=backups',stockStaff)).status,403);assert.equal((await request('admin.php?page=themes',stockStaff)).status,403);
  assert.equal((await request('admin.php?page=backups',stockStaff,{action:'backup_create',csrf:csrf(staffExitForm.text)})).status,403,'warehouse cannot create backups');
  const backupScreen=await request('admin.php?page=backups',admin);assert(backupScreen.text.includes('Ključ oporavka')&&backupScreen.text.includes('Potvrdi vraćanje')===false);assert((await request('admin.php?page=backups',admin,{action:'backup_restore',backup_id:'bad',confirmation:'VRATI',password:'wrong',csrf:csrf(backupScreen.text)})).text.includes('Administratorska lozinka nije ispravna'));
+ // Alpha theme persistence, all customer surfaces and protected idempotent demo import.
+ for(const theme of ['alpha-pro','alpha-premium','alpha-hybrid']){
+   assert.equal((await request('admin.php?page=themes',admin,{action:'store_theme',theme,csrf:csrf(themes.text)})).status,303);
+   const home=await request('',buyer);assert(home.text.includes('class="alpha-hero '),'Alpha hero rendered');
+   for(const url of ['','?all=1','?page=cart','?page=checkout','?page=product&id=1'])assert((await request(url,buyer)).text.includes('data-store-theme="'+theme+'"'));
+   assert(!(await request('?all=1',buyer)).text.includes('class="alpha-hero '),'catalog has no promotional hero');
+ }
+ assert.equal((await request('admin.php?page=themes',stockStaff,{action:'alpha_demo',csrf:csrf(staffExitForm.text)})).status,403);
+ assert.equal((await request('admin.php?page=themes',admin,{action:'alpha_demo',csrf:'invalid'})).status,403);
+ for(let repeat=0;repeat<2;repeat++)assert.equal((await request('admin.php?page=themes',admin,{action:'alpha_demo',csrf:csrf(themes.text)})).status,303);
+ const demoSearch=await request('?q=ALPHA-DEMO-001',buyer);assert(demoSearch.text.includes('MAXXT ekscentrična polirka 15 mm'),'SKU search finds seeded product');assert(demoSearch.text.includes('Testna ponuda.'),'demo is clearly labeled');
+ console.log('PASS: three Alpha layouts, persisted selection, SKU search and protected repeatable demo import');
  console.log('PASS: HTTP checkout, paid preparation to dispatched/paid, courier and tracking, order filters, typed exits, notes, reversals, CSV and separate warehouse/finance permissions; storefront regressions pass');
 }catch(e){console.error(logs);throw e;}finally{server.kill();if(existsSync(config))unlinkSync(config);}

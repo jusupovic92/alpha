@@ -63,5 +63,9 @@ try{
         foreach(explode(';',file_get_contents(dirname(__DIR__).'/database/migrations/009_admin_backups.sql')) as $sql)if(trim($sql)!=='')$db->exec($sql);
         echo "Migracija 009 je primijenjena.\n";
     }else echo "Migracija 009 je već primijenjena.\n";
+    if(!$db->query("SELECT COUNT(*) FROM schema_migrations WHERE version='010_alpha_themes'")->fetchColumn()) {
+        foreach(explode(';',file_get_contents(dirname(__DIR__).'/database/migrations/010_alpha_themes.sql')) as $sql)if(trim($sql)!=='')$db->exec($sql);
+        echo "Migracija 010 Alpha je primijenjena.\n";
+    }
 }catch(Throwable $e){fwrite(STDERR,$e->getMessage()."\nMigracija može biti djelimično primijenjena jer MySQL DDL nije transakcijski. Vratite backup prije novog pokušaja.\n");exit(1);}
 finally{$db->query("SELECT RELEASE_LOCK('webshop_schema_upgrade')");}
