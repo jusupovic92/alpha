@@ -1,0 +1,12 @@
+ALPHA 1.1 — NADOGRADNJA shop2.sdpkakanj.ba
+
+1. Napravite backup fajlova i baze.
+2. Raspakujte unutrašnji sadržaj ZIP-a preko postojećeg Alpha projekta. Sačuvajte config/local.php, storage/ i svoje fotografije u public/uploads/. Ne brišite postojeći projekat.
+3. U phpMyAdmin odaberite Alpha bazu koju koristi shop2.sdpkakanj.ba i uvezite SAMO database/migrations/011_alpha_photos.sql.
+4. U administraciji odaberite željenu Alpha temu i osvježite stranicu sa Ctrl+F5.
+
+NE UVOZITE install.sql niti install-alpha-demo.sql preko postojeće baze. Oni služe samo novoj praznoj instalaciji.
+
+Cijene, količine, rezervacije i vlastite fotografije ostaju sačuvane. Fotografije i nazivi se mijenjaju samo za stare demo artikle sa uključenim SVG ilustracijama.
+
+Uputstvo i opis izmjena: docs/ALPHA-1.1.md.

@@ -39,7 +39,3 @@ jobs:
       - run: php tests/alpha.php
 
       - run: php tests/render-alpha.php
-
-      - name: Prepare transparent product photo
-        run: |
-          node -e 'fetch("https://asdetailing.ba/wp-content/uploads/2026/10/Therapy-600x600.webp").then(async r=>{if(!r.ok)throw Error("Photo HTTP "+r.status);const b=Buffer.from(await r.arrayBuffer());if(b.toString("ascii",0,4)!=="RIFF")throw Error("Expected original WebP");console.log("ALPHA_WEBP "+b.toString("base64"));}).catch(e=>{console.error(e);process.exit(1)})'

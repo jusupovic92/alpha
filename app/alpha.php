@@ -47,7 +47,7 @@ function alphaDemoMedia(): array {return [
     '007'=>['clearcoat.jpg','Mipa C UV lak 1 kg — testna ponuda'],
     '008'=>['cleaner.jpg','APC Typhoon 0,5 L — testna ponuda'],
     '009'=>['pads.jpg','ChemicalWorkz Pad Box 75 mm, 6/1 — testna ponuda'],
-    '010'=>['polish.jpg','P&S Therapy Final Polish 236 ml — testna ponuda'],
+    '010'=>['polish.webp','P&S Therapy Final Polish 236 ml — testna ponuda'],
     '011'=>['microfiber.jpg','EWOCAR mikrofiber krpa 400 GSM — testna ponuda'],
     '012'=>['shampoo.jpg','3D Wash N Wax 3,8 L — testna ponuda']
 ];}

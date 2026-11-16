@@ -10,6 +10,6 @@ Za novu testnu instalaciju uvesti **database/install-alpha-demo.sql** u novu pra
 
 PHP 8.2+, MySQL 8.0+ ili MariaDB 10.6+, PDO MySQL, mbstring, OpenSSL i ZIP. Web root: public/.
 
-Testni podaci nisu stvarna prodajna ponuda. Slike su lokalne ilustracije za probni prikaz. Nazivi šest MAXXT artikala i njihove referentne cijene uzeti su kao polazni primjer sa Alpha Refinish stranice i kataloga; ostalih šest su generički primjeri odgovarajućih kategorija.
+Testni podaci nisu stvarna prodajna ponuda. Fotografije su uključene lokalno. Za postojeći shop2.sdpkakanj.ba primijeniti samo migraciju 011 prema docs/ALPHA-1.1.md. Nazivi šest MAXXT artikala i njihove referentne cijene uzeti su kao polazni primjer sa Alpha Refinish stranice i kataloga; ostalih šest su generički primjeri odgovarajućih kategorija.
 
 Provjere: postojeći integracijski i HTTP testovi, plus tests/alpha.php i testovi tri teme u tests/http.mjs.
