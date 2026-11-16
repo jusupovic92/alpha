@@ -1,0 +1,37 @@
+name: PHP and MySQL checks
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: local_test_only
+          MYSQL_DATABASE: webshop_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -plocal_test_only"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      TEST_DB_HOST: 127.0.0.1
+      TEST_DB_PORT: 3306
+      TEST_DB_NAME: webshop_test
+      TEST_DB_USER: root
+      TEST_DB_PASSWORD: local_test_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_mysql, mbstring, zip, openssl
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: find app bin config public tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - run: php tests/integration.php
+      - run: node tests/http.mjs
+      - run: node tests/setup.mjs
+      - run: node tests/smtp.mjs
+      - run: php tests/backups.php

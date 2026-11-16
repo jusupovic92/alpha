@@ -1,0 +1,72 @@
+const delivery = document.getElementById('shipping_method');
+const total = document.getElementById('checkout-total');
+function updateTotal() {
+  if (!delivery || !total) return;
+  const amount = Number(total.dataset.subtotal) + Number(delivery.selectedOptions[0]?.dataset.cost || 0);
+  total.textContent = new Intl.NumberFormat('bs-BA', {minimumFractionDigits:2,maximumFractionDigits:2}).format(amount / 100) + ' KM';
+}
+delivery?.addEventListener('change', updateTotal);
+updateTotal();
+
+document.querySelectorAll('[data-carousel]').forEach(carousel => {
+  const slides = [...carousel.querySelectorAll('[data-slide]')];
+  if (slides.length < 2) return;
+  const controls = carousel.querySelector('[data-carousel-controls]');
+  controls.hidden = false;
+  const dots = [...controls.querySelectorAll('[data-slide-index]')];
+  const pauseButton = controls.querySelector('[data-carousel-pause]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let index = 0, paused = reduced.matches, hovered = false, focused = false, timer;
+  function show(next, announce = false) {
+    index = (next + slides.length) % slides.length;
+    slides.forEach((slide, i) => { slide.hidden = i !== index; });
+    dots.forEach((dot, i) => dot.setAttribute('aria-pressed', String(i === index)));
+    if (announce) controls.querySelector('[data-carousel-status]').textContent = 'Proizvod ' + (index + 1) + ' od ' + slides.length;
+  }
+  function schedule() {
+    clearInterval(timer);
+    if (!paused && !hovered && !focused && !document.hidden) timer = setInterval(() => show(index + 1), 6000);
+    pauseButton.textContent = paused ? '▶' : 'Ⅱ';
+    pauseButton.setAttribute('aria-label', paused ? 'Pokreni automatsku izmjenu' : 'Zaustavi automatsku izmjenu');
+  }
+  dots.forEach((dot, i) => dot.addEventListener('click', () => { show(i, true); schedule(); }));
+  controls.querySelector('[data-carousel-prev]').addEventListener('click', () => { show(index - 1, true); schedule(); });
+  controls.querySelector('[data-carousel-next]').addEventListener('click', () => { show(index + 1, true); schedule(); });
+  pauseButton.addEventListener('click', () => { paused = !paused; schedule(); });
+  carousel.addEventListener('mouseenter', () => { hovered = true; schedule(); });
+  carousel.addEventListener('mouseleave', () => { hovered = false; schedule(); });
+  carousel.addEventListener('focusin', () => { focused = true; schedule(); });
+  carousel.addEventListener('focusout', event => { if (!carousel.contains(event.relatedTarget)) { focused = false; schedule(); } });
+  document.addEventListener('visibilitychange', schedule);
+  reduced.addEventListener('change', event => { if (event.matches) { paused = true; schedule(); } });
+  schedule();
+});
+document.querySelectorAll('[data-gallery]').forEach(gallery => {
+  const buttons = [...gallery.querySelectorAll('[data-gallery-src]')];
+  const link = gallery.querySelector('[data-gallery-link]');
+  const main = gallery.querySelector('[data-gallery-main]');
+  const sources = buttons.length ? buttons.map(b => b.dataset.gallerySrc) : [main.getAttribute('src')];
+  const dialog = gallery.querySelector('[data-lightbox]');
+  let index = 0, savedOverflow = '';
+  function select(next) {
+    index = (next + sources.length) % sources.length;
+    main.src = sources[index]; link.href = sources[index];
+    buttons.forEach((b, i) => b.setAttribute('aria-pressed', String(i === index)));
+    if (dialog) { dialog.querySelector('[data-lightbox-image]').src = sources[index]; dialog.querySelector('[data-lightbox-counter]').textContent = (index + 1) + ' / ' + sources.length; }
+  }
+  buttons.forEach((button, i) => button.addEventListener('click', () => select(i)));
+  if (!dialog || typeof dialog.showModal !== 'function') return;
+  dialog.querySelector('.lightbox-stage').classList.toggle('is-single', sources.length < 2);
+  link.addEventListener('click', event => { event.preventDefault(); select(index); savedOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden'; dialog.showModal(); });
+  dialog.querySelector('[data-lightbox-close]').addEventListener('click', () => dialog.close());
+  dialog.querySelector('[data-lightbox-prev]').addEventListener('click', () => select(index - 1));
+  dialog.querySelector('[data-lightbox-next]').addEventListener('click', () => select(index + 1));
+  for (const button of dialog.querySelectorAll('[data-lightbox-prev],[data-lightbox-next]')) button.hidden = sources.length < 2;
+  dialog.addEventListener('keydown', event => { if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); select(index + (event.key === 'ArrowRight' ? 1 : -1)); } });
+  dialog.addEventListener('click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); if(event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close(); } });
+  dialog.addEventListener('close', () => { document.body.style.overflow = savedOverflow; link.focus(); });
+});
+document.querySelectorAll('[data-quantity]').forEach(button => button.addEventListener('click', () => {
+  const input = button.closest('.quantity-control').querySelector('input');
+  input.value = String(Math.max(Number(input.min), Math.min(Number(input.max), Number(input.value || 1) + Number(button.dataset.quantity))));
+}));

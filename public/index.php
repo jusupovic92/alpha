@@ -1,0 +1,50 @@
+<?php
+declare(strict_types=1);
+require dirname(__DIR__).'/app/bootstrap.php';
+$action=(string)($_GET['page']??'home');
+$cart=&$_SESSION['cart']; if (!is_array($cart??null)) $cart=[];
+if(empty($_SESSION['checkout_token']))$_SESSION['checkout_token']=bin2hex(random_bytes(32));
+if ($_SERVER['REQUEST_METHOD']==='POST') {
+ checkCsrf();
+ if ($action==='add') {
+  $id=filter_var($_POST['id']??null,FILTER_VALIDATE_INT); $qty=filter_var($_POST['qty']??1,FILTER_VALIDATE_INT);
+  if ($id && $qty && $qty>=1 && $qty<=100 && (isset($cart[$id])||count($cart)<100)) {
+   $s=$db->prepare('SELECT id,stock FROM products WHERE id=? AND active=1');$s->execute([$id]);$p=$s->fetch();
+   if ($p && (int)$p['stock']>0) $cart[$id]=min((int)$p['stock'],100,(int)($cart[$id]??0)+$qty);
+  }
+  redirect('?page=cart');
+ }
+ if ($action==='remove') { $id=(int)($_POST['id']??0);unset($cart[$id]);redirect('?page=cart'); }
+ if ($action==='checkout') {
+  $fields=[];foreach(['customer_name'=>180,'email'=>254,'phone'=>60,'address'=>255,'city'=>150] as $key=>$max) { $v=trim((string)($_POST[$key]??''));if ($v===''||mb_strlen($v)>$max) {http_response_code(422);exit('Provjerite obavezna polja.');}$fields[$key]=$v; }
+  if (!filter_var($fields['email'],FILTER_VALIDATE_EMAIL)||!$cart) {http_response_code(422);exit('Neispravna e-mail adresa ili prazna korpa.');}
+  $note=mb_substr(trim((string)($_POST['note']??'')),0,2000);
+  $fields['note']=$note;
+  $token=(string)($_POST['checkout_token']??'');
+  if(!hash_equals($_SESSION['checkout_token'],$token)){http_response_code(409);exit('Osvježite korpu i pokušajte ponovo.');}
+  try {
+   checkoutRateLimit((string)($_SERVER['REMOTE_ADDR']??''));
+   $orderId=checkout($cart,$fields,(int)($_POST['shipping_method']??0),(string)($_POST['payment_method']??'cod'),$token);
+   $cart=[];$_SESSION['completed_order']=$orderId;$_SESSION['checkout_token']=bin2hex(random_bytes(32));redirect('?page=success');
+  } catch(Throwable $ex) {error_log($ex->getMessage());http_response_code(409);exit('Narudžba nije uspjela. Provjerite zalihe i odabranu dostavu.');}
+ }
+ http_response_code(400);exit('Nepoznata akcija.');
+}
+function productsInCart(PDO $db,array $cart):array {
+ if(!$cart)return [];
+ $ids=array_map('intval',array_keys($cart));$marks=implode(',',array_fill(0,count($ids),'?'));$q=$db->prepare("SELECT id,name,price,stock FROM products WHERE active=1 AND id IN ($marks)");$q->execute($ids);return $q->fetchAll();
+}
+$detail=null;if($action==='product'){$detail=query('SELECT p.*,c.name category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.id=? AND p.active=1',[(int)($_GET['id']??0)])->fetch();if(!$detail)http_response_code(404);}
+?><!doctype html><html lang="bs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?=e(($detail?$detail['name'].' · ':'').setting('shop_name'))?></title><link rel="stylesheet" href="assets/style.css?v=080"><link rel="stylesheet" href="assets/store.css?v=080"><link rel="stylesheet" href="assets/store-themes.css?v=091"><link rel="stylesheet" href="assets/branding.css?v=092"><?php if($icon=brandImage('brand_icon')):?><link rel="icon" href="<?=e($icon)?>"><?php endif;?><script src="assets/shop.js?v=080" defer></script></head><body data-store-theme="<?=e(storeTheme())?>" class="storefront" style="--font-scale:<?=e(fontScale('store'))?>;--accent:<?=e(preg_match('/^#[0-9a-fA-F]{6}$/D',setting('accent_color'))?setting('accent_color'):'#167655')?>">
+<a class="skip-link" href="#main-content">Pređi na sadržaj</a><div class="announcement">Pažljivo odabrani artikli. Jednostavna kupovina. <span>Plaćanje pouzećem ↗</span></div><header class="store-header"><?php renderStoreBrand($action==='home'&&trim((string)($_GET['q']??''))===''&&!(int)($_GET['category']??0)&&max(1,min(10000,(int)($_GET['p']??1)))===1&&storeTheme()!=='minimal'); ?><form class="header-search" method="get"><label class="sr-only" for="header-q">Pretražite artikle</label><input id="header-q" name="q" placeholder="Pretražite proizvode…" value="<?=e((string)($_GET['q']??''))?>"><button aria-label="Pretraži">⌕</button></form><a class="cart-link" href="?page=cart"><span aria-hidden="true">▱</span> Korpa <b><?=array_sum($cart)?></b></a></header><nav class="store-nav" aria-label="Glavna navigacija"><a href="./">Naslovnica</a><a href="?all=1#ponuda">Svi proizvodi</a><a href="./#ponuda">Izdvojeno za vas</a><span><?=e(setting('contact_email'))?></span></nav><main id="main-content">
+<?php if($action==='home'):require dirname(__DIR__).'/app/views/home.php';elseif($action==='product'):require dirname(__DIR__).'/app/views/product.php';?>
+<?php elseif($action==='cart'):
+$items=productsInCart($db,$cart);$total=0.0;?>
+<h1>Vaša korpa</h1><div class="panel"><?php if(!$items):?><p>Korpa je prazna.</p><?php else:?><table><thead><tr><th>Proizvod</th><th>Količina</th><th>Cijena</th><th></th></tr></thead><tbody>
+<?php foreach($items as $p):$qty=(int)$cart[$p['id']];$total+=(float)$p['price']*$qty;?><tr><td><?=e($p['name'])?></td><td><?=$qty?></td><td><?=money((float)$p['price']*$qty)?></td><td><form method="post" action="?page=remove"><?=csrf()?><input type="hidden" name="id" value="<?=(int)$p['id']?>"><button>Ukloni</button></form></td></tr><?php endforeach;?></tbody></table><h2>Ukupno: <?=money($total)?></h2><a class="btn" href="?page=checkout">Nastavi na narudžbu</a><?php endif;?></div>
+<?php elseif($action==='checkout'): if(!$cart){echo '<p>Korpa je prazna.</p>';exit;}$deliveries=query('SELECT * FROM shipping_methods WHERE active=1 ORDER BY id')->fetchAll();$subtotal=0;foreach(productsInCart($db,$cart) as $cp)$subtotal+=cents((string)$cp['price'])*(int)$cart[$cp['id']];?>
+<h1>Podaci za narudžbu</h1><div class="panel"><p>Cijena dostave dodaje se cijeni proizvoda. Plaćanje pouzećem ili uplatom na račun, ako je omogućeno.</p><form method="post" action="?page=checkout"><?=csrf()?>
+<?php foreach(['customer_name'=>'Ime i prezime','email'=>'E-mail','phone'=>'Telefon','address'=>'Adresa','city'=>'Grad'] as $k=>$label):?><label for="<?=e($k)?>"><?=e($label)?></label><input id="<?=e($k)?>" name="<?=e($k)?>" <?= $k==='email'?'type="email"':'type="text"' ?> required><?php endforeach;?>
+<input type="hidden" name="checkout_token" value="<?=e($_SESSION['checkout_token'])?>"><label for="shipping_method">Dostava</label><select required id="shipping_method" name="shipping_method"><?php foreach($deliveries as $d):?><option value="<?=$d['id']?>" data-cost="<?=deliveryCharge($d)?>"><?=e($d['name'])?> — <?=money(deliveryCharge($d)/100)?></option><?php endforeach;?></select><details><summary>Uslovi dostupnih načina dostave</summary><?php foreach($deliveries as $d):?><p><strong><?=e($d['name'])?></strong> · <?=e(deliveryPayers()[$d['payer']])?><br><?=nl2br(e($d['terms']))?></p><?php endforeach;?></details><p>Proizvodi: <?=money($subtotal/100)?></p><h2>Ukupno s dostavom: <span id="checkout-total" data-subtotal="<?=$subtotal?>"><?=money(($subtotal+(!empty($deliveries)?deliveryCharge($deliveries[0]):0))/100)?></span></h2><noscript><p>Prikazani ukupni iznos koristi prvu opciju dostave. Za drugu opciju dodajte njenu cijenu dostave na iznos proizvoda.</p></noscript><label for="payment_method">Plaćanje</label><select id="payment_method" name="payment_method"><option value="cod">Pouzećem</option><?php if(setting('bank_details')!==''):?><option value="bank">Uplata na račun</option><?php endif;?></select><?php if(setting('bank_details')!==''):?><p><?=nl2br(e(setting('bank_details')))?></p><?php endif;?><p><?=nl2br(e(setting('privacy_text')))?></p><label for="note">Napomena (opcionalno)</label><textarea id="note" name="note"></textarea><button <?=!$deliveries?'disabled':''?>>Potvrdi narudžbu</button></form></div>
+<?php elseif($action==='success'&&!empty($_SESSION['completed_order'])):$number=(int)$_SESSION['completed_order'];unset($_SESSION['completed_order']);?><h1>Hvala na narudžbi!</h1><p>Vaša narudžba broj <strong><?=$number?></strong> je zaprimljena.</p><a class="btn" href="./">Povratak na prodavnicu</a>
+<?php else:http_response_code(404);?><h1>Stranica nije pronađena</h1><?php endif;?></main><footer class="store-footer"><div><?php renderStoreBrand(false,true); ?><p><?=e(setting('hero_text'))?></p></div><div><h3>Istražite ponudu</h3><a href="./">Naslovnica</a><a href="?all=1#ponuda">Svi proizvodi</a><a href="?page=cart">Vaša korpa</a></div><div><h3>Kontakt</h3><p><?=e(setting('contact_email'))?></p><p><?=e(setting('sender_phone'))?></p></div><div class="footer-bottom"><span>© <?=date('Y')?> <?=e(setting('shop_name'))?></span><a href="admin.php">Administracija ↗</a><span>Plaćanje pouzećem · Dostava na adresu</span></div></footer></body></html>
