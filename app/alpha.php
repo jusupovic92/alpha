@@ -72,6 +72,8 @@ function alphaDemoSeed(): int {
     requirePermission('products');
     requirePermission('inventory');
     $sql=file_get_contents(dirname(__DIR__).'/database/demo-alpha.sql');
+    $photoSql=file_get_contents(dirname(__DIR__).'/database/migrations/011_alpha_photos.sql');
+    if($sql!==false&&$photoSql!==false)$sql.="\n".$photoSql;
     if($sql===false) throw new RuntimeException('Nedostaje datoteka testnih artikala.');
     $before=(int)query("SELECT COUNT(*) FROM products WHERE sku LIKE 'ALPHA-DEMO-%'")->fetchColumn();
     try {

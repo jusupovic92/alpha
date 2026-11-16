@@ -139,3 +139,19 @@ INSERT INTO stock_movements(product_id,quantity,kind,note,available_after,reserv
 INSERT INTO products(category_id,sku,name,description,price,stock,image_url,active,featured,hero_selected) SELECT (SELECT id FROM categories WHERE slug='detailing'),'ALPHA-DEMO-012','Sredstvo za pranje vozila – testni artikal','TESTNI ARTIKAL — probni podaci za provjeru izgleda i naručivanja. Cijena i stanje nisu potvrđena prodajna ponuda. Primjer artikla prema kategorijama Alpha Refinish ponude. Slika je ilustracija, a ne fotografija stvarnog proizvoda.',19,21,'assets/alpha/bottle.svg',1,1,0 WHERE NOT EXISTS(SELECT 1 FROM products WHERE sku='ALPHA-DEMO-012');
 INSERT INTO stock_movements(product_id,quantity,kind,note,available_after,reserved_after,unit_cost) SELECT id,stock,'adjustment','Početno testno stanje Alpha demo',stock,reserved,0 FROM products WHERE sku='ALPHA-DEMO-012' AND NOT EXISTS(SELECT 1 FROM stock_movements m WHERE m.product_id=products.id);
 INSERT INTO settings(setting_key,setting_value) VALUES('alpha_demo_notice','1') ON DUPLICATE KEY UPDATE setting_value='1';
+
+-- Update bundled demo photographs only. Preserve custom photos, all prices, stock and orders.
+SET NAMES utf8mb4;
+UPDATE products SET image_url='assets/alpha/maxxt-polisher.png' WHERE sku='ALPHA-DEMO-001' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-rotary.png' WHERE sku='ALPHA-DEMO-002' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-sander.png' WHERE sku='ALPHA-DEMO-003' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-sander.png' WHERE sku='ALPHA-DEMO-004' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-sander.png' WHERE sku='ALPHA-DEMO-005' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-vacuum.png' WHERE sku='ALPHA-DEMO-006' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/clearcoat.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN 'Mipa C UV lak 1 kg — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-007' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/cleaner.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN 'APC Typhoon 0,5 L — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-008' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/pads.jpg', category_id=(SELECT id FROM categories WHERE slug='poliranje' LIMIT 1), name=CASE WHEN name LIKE '%testni artikal%' THEN 'ChemicalWorkz Pad Box 75 mm, 6/1 — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-009' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/polish.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN 'P&S Therapy Final Polish 236 ml — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-010' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/microfiber.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN 'EWOCAR mikrofiber krpa 400 GSM — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-011' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/shampoo.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN '3D Wash N Wax 3,8 L — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-012' AND image_url LIKE 'assets/alpha/%.svg';
+INSERT IGNORE INTO schema_migrations(version) VALUES ('011_alpha_photos');
