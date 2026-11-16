@@ -197,6 +197,12 @@ try{
    const home=await request('',buyer);assert(home.text.includes('class="alpha-hero '),'Alpha hero rendered');
    for(const url of ['','?all=1','?page=cart','?page=checkout','?page=product&id=1'])assert((await request(url,buyer)).text.includes('data-store-theme="'+theme+'"'));
    assert(!(await request('?all=1',buyer)).text.includes('class="alpha-hero '),'catalog has no promotional hero');
+   for(const article of ['odabir-polirke','priprema-povrsine','brusni-disk']){const r=await request('?page=advice&article='+article,buyer);assert.equal(r.status,200);assert(r.text.includes('alpha-content-page')&&r.text.includes('alpha-article-intro'));}
+   for(const section of ['kontakt','dostava','reklamacije','uslovi','privatnost']){const r=await request('?page=info&section='+section,buyer);assert.equal(r.status,200);assert(r.text.includes('alpha-content-page'));}
+   assert.equal((await request('?page=advice&article=invalid',buyer)).status,404);
+   assert.equal((await request('?page=info&section=invalid',buyer)).status,404);
+   if(theme==='alpha-premium'){assert(home.text.includes('alpha-value-section')&&home.text.includes('alpha-advice-section')&&home.text.includes('alpha-rich-footer'));assert(!home.text.includes('120+'));}
+
  }
  assert.equal((await request('admin.php?page=themes',stockStaff,{action:'alpha_demo',csrf:csrf(staffExitForm.text)})).status,403);
  assert.equal((await request('admin.php?page=themes',admin,{action:'alpha_demo',csrf:'invalid'})).status,403);

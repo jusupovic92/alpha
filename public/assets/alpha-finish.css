@@ -1,0 +1,63 @@
+/* Alpha 1.3: studio photography and complete lower homepage. */
+.storefront[data-store-theme=alpha-premium]{background:linear-gradient(#07110de0,#09150de8),url('alpha/premium-studio.webp') center top/cover fixed no-repeat!important}
+.storefront[data-store-theme=alpha-premium] .store-header{background:#0b120ee8}
+.storefront[data-store-theme=alpha-premium] .alpha-photo-hero .alpha-hero-image>img{object-position:70% center;opacity:1}
+.storefront[data-store-theme=alpha-premium] .alpha-photo-hero:after{background:linear-gradient(90deg,#08100cb8,#08100c52 46%,#08100c00 78%)}
+.alpha-section-kicker{font-size:10px;line-height:1.5;font-weight:700;letter-spacing:1.4px;color:#ffa13a!important;margin:0 0 13px}
+.alpha-value-section{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:65px;align-items:center;margin:45px 0 0;padding:48px 38px;border:1px solid #2d624144;border-radius:12px;background:linear-gradient(90deg,#07150edb,#0a1c14ca),url('alpha/premium-studio.webp') center/cover;overflow:hidden}
+.alpha-value-copy h2{font-size:36px;line-height:1.12;letter-spacing:-1px;color:#fff;margin:0 0 18px;max-width:390px}
+.alpha-value-copy>p:not(.alpha-section-kicker){color:#c1d2c7;line-height:1.7;font-size:15px;max-width:340px;margin:0 0 24px}
+.alpha-value-section .btn{font-size:12px;padding:13px 20px;min-height:44px;border-radius:5px}
+.alpha-value-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.alpha-value-grid article{padding:21px;border:1px solid #27734a80;background:linear-gradient(140deg,#063822bd,#071c12d9);border-radius:9px;transition:transform .22s,border-color .22s,box-shadow .22s}
+.alpha-value-grid article:hover{transform:translateY(-4px);border-color:#00b36a;box-shadow:0 8px 25px #0003}
+.alpha-value-grid svg{width:34px;height:34px;color:#cfecdc;margin-bottom:12px}
+.alpha-value-grid h3{font-size:15px;line-height:1.35;margin:0 0 8px;color:#fff}
+.alpha-value-grid p{font-size:11px;line-height:1.65;color:#a7c3b2;margin:0}
+.alpha-brand-section,.alpha-advice-section{padding:40px 0;border-bottom:1px solid #34533f80}
+.alpha-brand-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:22px}
+.alpha-brand-grid a{position:relative;min-height:70px;display:flex;align-items:center;justify-content:center;text-align:center;padding:15px 12px;border-radius:7px;background:#f5f8f5;color:#213b2b!important;box-shadow:0 5px 15px #0002;font-size:21px;font-weight:800;letter-spacing:-.8px;transition:transform .22s,box-shadow .22s;overflow-wrap:anywhere}
+.alpha-brand-grid a:first-child{font-style:italic}.alpha-brand-grid a:nth-child(2){color:#236485!important}
+.alpha-brand-grid a span{position:absolute;right:7px;top:4px;font-size:12px;color:#91a699;font-weight:400;letter-spacing:0}
+.alpha-brand-grid a:hover,.alpha-brand-grid a:focus-visible{transform:translateY(-4px);box-shadow:0 5px 25px #00bd5b33}
+.alpha-advice-section{border:0;padding-bottom:20px}
+.alpha-advice-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px}
+.alpha-advice-card{display:flex;flex-direction:column;min-width:0;border:1px solid #33553e;border-radius:9px;background:linear-gradient(140deg,#14281dee,#09190fee);overflow:hidden;transition:transform .22s,border-color .22s,box-shadow .22s}
+.alpha-advice-card:hover,.alpha-advice-card:focus-visible{transform:translateY(-5px);border-color:#009e58;box-shadow:0 10px 25px #0004}
+.alpha-advice-photo{height:205px;overflow:hidden;background:#f3f5f1}
+.alpha-advice-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s}
+.alpha-advice-card:last-child .alpha-advice-photo img{object-fit:contain;padding:12px}
+.alpha-advice-card:hover img{transform:scale(1.035)}
+.alpha-advice-copy{display:flex;flex-direction:column;padding:21px;flex:1}
+.alpha-advice-copy .alpha-section-kicker{font-size:9px;margin-bottom:9px}
+.alpha-advice-copy h3{font-size:21px;letter-spacing:-.5px;line-height:1.25;margin:0 0 24px;color:#fff}
+.alpha-advice-copy>span{display:flex;justify-content:space-between;margin-top:auto;color:#c8e2d2;font-size:12px}
+.alpha-advice-copy b{font-weight:400;color:#00ca76}
+.alpha-contact-banner{margin:26px 0 45px;min-height:250px;padding:38px;border:1px solid #277345;border-radius:10px;background:linear-gradient(90deg,#003e27f0,#003e27bf 57%,#04211440),url('alpha/spray-guns.jpg') right center/cover;display:flex;align-items:center}
+.alpha-contact-banner>div{max-width:730px}
+.alpha-contact-banner h2{color:#fff;font-size:36px;line-height:1.15;letter-spacing:-1px;margin:0 0 17px}
+.alpha-contact-banner p:not(.alpha-section-kicker){font-size:14px;line-height:1.7;color:#c6dfd1;margin:0 0 23px;max-width:600px}
+.storefront[data-store-theme=alpha-premium] .alpha-contact-banner .btn{min-height:44px;font-size:12px;padding:13px 20px;border-radius:5px;border:1px solid #00a45e;background:#009757;color:#fff}
+.storefront[data-store-theme=alpha-premium] .alpha-contact-banner .btn.secondary{background:#0a211030;border-color:#8fae9a;color:#fff}
+.storefront[data-store-theme=alpha-premium] .alpha-rich-footer{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.15fr;gap:34px;background:linear-gradient(#060d09f0,#080e0bf5);border-top:1px solid #009c56;padding:40px max(30px,calc((100vw - 1200px)/2)) 25px;margin:0}
+.alpha-rich-footer>div{min-width:0}
+.alpha-rich-footer h3{font-size:12px;color:#f7fbf8;text-transform:uppercase;letter-spacing:.8px;margin:0 0 18px}
+.storefront[data-store-theme=alpha-premium] .alpha-rich-footer p{font-size:12px!important;line-height:1.8;color:#adbfaf!important;max-width:255px;margin:18px 0 0}
+.alpha-rich-footer>div>a:not(.brand),.alpha-contact-links a{display:block;font-size:12px;line-height:1.65;margin:0 0 11px;color:#c4d6ca!important;overflow-wrap:anywhere}
+.alpha-rich-footer a:hover{color:#2ed38c!important}
+.alpha-rich-footer .alpha-footer-contact{color:#36d68e!important;margin-top:18px!important}
+.alpha-rich-footer .footer-bottom{grid-column:1/-1;margin-top:8px;padding-top:22px;border-top:1px solid #34513e;font-size:11px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;color:#91a699}
+.alpha-rich-footer .footer-bottom>a{margin:0!important;font-size:11px!important}
+.alpha-rich-footer .footer-bottom>a:last-child{margin-left:auto!important}
+.alpha-content-page{max-width:850px;margin:30px auto 55px;padding:32px;background:#0e1d15ed;border:1px solid #355440;border-radius:10px;color:#d0e0d5;line-height:1.85}
+.alpha-content-page h1{font-size:38px;line-height:1.15;color:#fff;letter-spacing:-1px;margin:15px 0 25px}
+.alpha-content-page h2{font-size:22px;color:#fff;line-height:1.3;margin:25px 0 10px}
+.alpha-content-page p{font-size:15px;margin:0 0 20px}
+.alpha-content-page .alpha-section-kicker{font-size:10px;margin-top:25px;margin-bottom:8px}
+.alpha-content-page .alpha-back{font-size:12px;color:#89cda6}
+.alpha-article-image{display:block;max-width:100%;width:100%;height:330px;object-fit:cover;border-radius:7px;margin:0 0 25px;background:#eff4ee}
+.alpha-content-page .alpha-article-intro{font-size:19px;color:#ecf5ef}
+.alpha-content-page .btn{font-size:13px;margin-top:12px;min-height:44px}
+@media(max-width:1000px){.alpha-value-section{gap:26px;padding:32px 26px}.alpha-brand-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.alpha-value-copy h2{font-size:31px}.alpha-advice-photo{height:170px}.alpha-advice-copy{padding:17px}.alpha-advice-copy h3{font-size:19px}.storefront[data-store-theme=alpha-premium] .alpha-rich-footer{gap:25px;padding-left:24px;padding-right:24px}}
+@media(max-width:760px){.storefront[data-store-theme=alpha-premium]{background:linear-gradient(#07110def,#09150df4),url('alpha/premium-studio.webp') center top/auto 900px repeat-y!important;background-attachment:scroll!important}.storefront[data-store-theme=alpha-premium] .alpha-photo-hero .alpha-hero-image>img{object-position:67% center}.storefront[data-store-theme=alpha-premium] .alpha-photo-hero:after{background:linear-gradient(90deg,#08100ce8,#08100ca0 60%,#08100c52)}.alpha-value-section{grid-template-columns:1fr;gap:26px;margin:25px 0 0;padding:27px 20px}.alpha-value-copy h2{font-size:29px;max-width:310px}.alpha-value-copy>p:not(.alpha-section-kicker){font-size:13px}.alpha-value-grid{gap:10px}.alpha-value-grid article{padding:16px 13px}.alpha-value-grid svg{width:29px;height:29px;margin-bottom:10px}.alpha-value-grid h3{font-size:13px}.alpha-value-grid p{font-size:11px}.alpha-section-kicker{font-size:9px;letter-spacing:1.1px}.alpha-brand-section,.alpha-advice-section{padding:29px 0}.alpha-brand-section .section-heading{align-items:start;flex-wrap:wrap}.alpha-brand-grid{gap:9px;margin-top:16px}.alpha-brand-grid a{font-size:16px;min-height:59px;padding:15px 8px}.alpha-advice-grid{grid-template-columns:1fr;gap:15px;margin-top:19px}.alpha-advice-photo{height:200px}.alpha-advice-copy{padding:20px}.alpha-advice-copy h3{font-size:22px;margin-bottom:18px}.alpha-contact-banner{margin:6px 0 32px;padding:29px 21px;min-height:285px;background-position:70% center}.alpha-contact-banner h2{font-size:29px}.alpha-contact-banner p:not(.alpha-section-kicker){font-size:13px}.alpha-contact-banner .alpha-actions{display:flex;flex-wrap:wrap;gap:10px}.storefront[data-store-theme=alpha-premium] .alpha-contact-banner .btn{font-size:11px;gap:8px;padding:11px 13px}.storefront[data-store-theme=alpha-premium] .alpha-rich-footer{grid-template-columns:1fr 1fr;gap:28px 18px;padding:30px 20px 24px}.alpha-rich-footer .alpha-footer-brand{grid-column:1/-1}.alpha-rich-footer h3{font-size:11px;margin-bottom:14px}.storefront[data-store-theme=alpha-premium] .alpha-rich-footer p{font-size:12px!important;max-width:310px}.alpha-rich-footer>div>a:not(.brand),.alpha-contact-links a{font-size:12px;min-height:33px;padding-top:4px}.alpha-rich-footer .footer-bottom{gap:15px;padding-top:18px}.alpha-rich-footer .footer-bottom>a:last-child{margin-left:0!important}.alpha-content-page{padding:24px 18px;margin-top:20px}.alpha-content-page h1{font-size:30px;letter-spacing:-.5px}.alpha-content-page p{font-size:14px}.alpha-article-image{height:230px}.alpha-content-page .alpha-article-intro{font-size:17px}}
+@media(prefers-reduced-motion:reduce){.alpha-value-grid article,.alpha-brand-grid a,.alpha-advice-card,.alpha-advice-photo img{transition:none!important}.alpha-value-grid article:hover,.alpha-brand-grid a:hover,.alpha-advice-card:hover,.alpha-advice-card:hover img{transform:none!important}}

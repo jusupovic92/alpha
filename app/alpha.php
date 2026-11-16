@@ -33,7 +33,7 @@ function alphaIcon(string $name): string {
 
 function alphaHero(): void {
     $categories=alphaCategories();$premium=storeTheme()==='alpha-premium';$pro=storeTheme()==='alpha-pro';
-    $photo='assets/alpha/'.($premium?'polishing-wide.jpg':($pro?'spray-guns.jpg':'workshop-spray.jpg'));
+    $photo='assets/alpha/'.($premium?'premium-studio.webp':($pro?'spray-guns.jpg':'workshop-spray.jpg'));
     $slides=heroProducts();$spotlight=$slides[0]??null;
     ?>
     <section class="alpha-hero alpha-photo-hero" aria-labelledby="alpha-title">
