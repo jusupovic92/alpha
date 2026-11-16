@@ -17,27 +17,55 @@ function alphaCategoryLink(array $categories, string $slug): string {
 }
 
 function alphaHero(): void {
-    $categories=alphaCategories();
-    $premium=storeTheme()==='alpha-premium';
-    $pro=storeTheme()==='alpha-pro';
-    $slides=heroProducts();
-    $spotlight=$slides[0]??null;
-    $heroImage=$spotlight ? imageSource($spotlight['hero_banner_url'] ?: $spotlight['image_url']) : 'assets/alpha/workshop.svg';
+    $categories=alphaCategories();$premium=storeTheme()==='alpha-premium';$pro=storeTheme()==='alpha-pro';
+    $photo='assets/alpha/'.($premium?'polishing-wide.jpg':($pro?'spray-guns.jpg':'workshop-spray.jpg'));
+    $slides=heroProducts();$spotlight=$slides[0]??null;
     ?>
-    <section class="alpha-hero <?=!empty($spotlight['hero_banner_url'])?'alpha-hero-custom':''?>" aria-labelledby="alpha-title">
-      <div class="alpha-hero-copy"><p class="alpha-kicker">ALPHA REFINISH / PROFESIONALNA AUTOREPARATURA</p>
+    <section class="alpha-hero alpha-photo-hero" aria-labelledby="alpha-title">
+      <div class="alpha-hero-image"><img src="<?=e($photo)?>" alt="<?=$premium?'Profesionalno poliranje vozila':($pro?'Profesionalni pištolji za lakiranje':'Rad u lakirerskoj radionici')?>" fetchpriority="high" width="1200" height="720"></div>
+      <div class="alpha-hero-copy"><p class="alpha-kicker">ZA PROMJENU, PROBAJTE KVALITET.</p>
         <h1 id="alpha-title"><?=$pro?'Sve za vašu radionicu.':($premium?'Perfekcija u svakom sloju.':'Od pripreme do savršenog sjaja.')?></h1>
-        <p>Materijali i oprema za pripremu, lakiranje, poliranje i njegu vozila.</p>
+        <p>Profesionalni materijali i oprema za autoreparaturu, poliranje i detailing.</p>
         <div class="alpha-actions"><a class="btn" href="<?=e(alphaCategoryLink($categories,'boje-i-lakovi'))?>">Autoreparatura <span aria-hidden="true">→</span></a><a class="btn secondary" href="<?=e(alphaCategoryLink($categories,'detailing'))?>">Detailing <span aria-hidden="true">→</span></a></div>
-        <a class="alpha-all" href="?all=1#ponuda">Pregledajte cijelu ponudu →</a>
+        <?php if($spotlight):?><a class="alpha-hero-product" href="<?=e(productLink((int)$spotlight['id']))?>">Izdvojeno: <?=e($spotlight['name'])?> · <?=money((float)$spotlight['price'])?> →</a><?php endif;?>
       </div>
-      <div class="alpha-hero-image"><img src="<?=e($heroImage)?>" alt="<?=e($spotlight?$spotlight['name']:'Priprema vozila u radionici – ilustracija')?>" fetchpriority="high"><?php if($spotlight):?><a class="alpha-spotlight" href="<?=e(productLink((int)$spotlight['id']))?>"><span>Izdvojeni artikal</span><strong><?=e($spotlight['name'])?></strong><span><?=money((float)$spotlight['price'])?> · Pogledaj →</span></a><?php endif;?></div>
     </section>
-    <?php if($categories):?><section class="alpha-categories" aria-label="Kategorije proizvoda"><?php foreach($categories as $category):?><a href="?category=<?=(int)$category['id']?>#ponuda"><img src="<?=e(imageSource($category['image_url']))?>" alt="" loading="lazy"><strong><?=e($category['name'])?></strong><span aria-hidden="true">→</span></a><?php endforeach;?></section><?php endif;?>
-    <div class="alpha-benefits"><span>Od pripreme do završne obrade</span><span>Materijali i alati na jednom mjestu</span><span>Jasna dostupnost artikala</span></div>
+    <?php if($categories):?><section class="alpha-categories" aria-label="Kategorije proizvoda"><?php foreach($categories as $category):?><a class="alpha-category-<?=e($category['slug'])?>" href="?category=<?=(int)$category['id']?>#ponuda"><div class="alpha-category-photo"><img src="<?=e(alphaCategoryPhoto($category))?>" alt="" loading="lazy" width="320" height="200"></div><span class="alpha-category-label"><strong><?=e($category['name'])?></strong><span aria-hidden="true">↗</span></span></a><?php endforeach;?></section><?php endif;?>
     <?php
 }
-
+function alphaPromotion(): void { ?>
+    <section class="alpha-promotion"><img src="assets/alpha/polishing-close.jpg" alt="Završna obrada i poliranje vozila" loading="lazy" width="768" height="960"><div><p>OD PRIPREME DO ZAVRŠNE OBRADE</p><h2>Materijali i oprema<br>za profesionalce.</h2><a href="?all=1#ponuda">Istražite ponudu →</a></div></section>
+    <?php
+}
+function alphaDemoMedia(): array {return [
+    '001'=>['maxxt-polisher.png','MAXXT ekscentrična polirka 15 mm'],
+    '002'=>['maxxt-rotary.png','MAXXT rotaciona polirka'],
+    '003'=>['maxxt-sander.png','MAXXT ekscentrična šlajfarica'],
+    '004'=>['maxxt-sander.png','MAXXT ekscentrična šlajfarica 5,0 mm'],
+    '005'=>['maxxt-sander.png','MAXXT ekscentrična rašpa 198 × 70 mm, 3,0 mm'],
+    '006'=>['maxxt-vacuum.png','MAXXT usisivač'],
+    '007'=>['clearcoat.jpg','Mipa C UV lak 1 kg — testna ponuda'],
+    '008'=>['cleaner.jpg','APC Typhoon 0,5 L — testna ponuda'],
+    '009'=>['pads.jpg','ChemicalWorkz Pad Box 75 mm, 6/1 — testna ponuda'],
+    '010'=>['polish.jpg','P&S Therapy Final Polish 236 ml — testna ponuda'],
+    '011'=>['microfiber.jpg','EWOCAR mikrofiber krpa 400 GSM — testna ponuda'],
+    '012'=>['shampoo.jpg','3D Wash N Wax 3,8 L — testna ponuda']
+];}
+function alphaImage(string $url,string $sku=''): string {
+    if(preg_match('~^ALPHA-DEMO-(\d{3})$~D',$sku,$match)&&preg_match('~^assets/alpha/[a-z0-9-]+\.svg$~D',$url)){
+        $media=alphaDemoMedia()[$match[1]]??null;
+        if($media&&is_file(dirname(__DIR__).'/public/assets/alpha/'.$media[0]))return 'assets/alpha/'.$media[0];
+    }
+    return $url;
+}
+function alphaPresentProduct(array $product): array {
+    if(preg_match('~^ALPHA-DEMO-(\d{3})$~D',(string)($product['sku']??''),$match)&&preg_match('~^assets/alpha/[a-z0-9-]+\.svg$~D',(string)($product['image_url']??''))){
+        $media=alphaDemoMedia()[$match[1]]??null;
+        if($media&&(int)$match[1]>=7&&str_contains((string)$product['name'],'testni artikal'))$product['name']=$media[1];
+    }
+    return $product;
+}
+function alphaCategoryPhoto(array $category): string {return 'assets/alpha/'.(['boje-i-lakovi'=>'clearcoat.jpg','priprema-povrsine'=>'paint-system.jpg','brusenje'=>'maxxt-sander.png','poliranje'=>'maxxt-polisher.png','detailing'=>'microfiber.jpg','oprema'=>'spray-guns.jpg'][$category['slug']]??'paint-system.jpg');}
 function alphaDemoSeed(): int {
     global $db;
     requirePermission('settings');

@@ -1,6 +1,8 @@
-# ALPHA refinish 1.0.0
+[Nadogradnja na 1.1 — shop2.sdpkakanj.ba](docs/ALPHA-1.1.md)
 
-Tri nove teme: **Pro katalog**, **Premium Garage** i **Alpha Hybrid**. Administrator ih bira kroz **Teme → Teme naslovnice i prodavnice**. Ranijih pet tema i sve poslovne funkcije ostaju dostupne.
+# ALPHA refinish 1.1.0
+
+Tri nove teme: **Pro katalog**, **Premium Garage** i **Alpha Hybrid**, s lokalnim fotografijama i prilagođenim mobilnim prikazom. Administrator ih bira kroz **Teme → Teme naslovnice i prodavnice**. Ranijih pet tema i sve poslovne funkcije ostaju dostupne.
 
 [Instalacija i nadogradnja Alpha](docs/ALPHA-1.0.md) · [Osnovno postavljanje](docs/POSTAVLJANJE.md)
 

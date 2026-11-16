@@ -1,5 +1,5 @@
 <?php if(!$detail):?><div class="empty-state"><h1>Artikal nije dostupan.</h1><a class="btn" href="./">Pogledaj ponudu</a></div><?php else:
-$images=[imageSource($detail['image_url'])];foreach(query('SELECT image_url FROM product_images WHERE product_id=? ORDER BY sort_order,id',[$detail['id']])->fetchAll() as $image)$images[]=imageSource($image['image_url']);$images=array_values(array_unique($images));
+$detail=alphaPresentProduct($detail);$images=[imageSource($detail['image_url'],(string)$detail['sku'])];foreach(query('SELECT image_url FROM product_images WHERE product_id=? ORDER BY sort_order,id',[$detail['id']])->fetchAll() as $image)$images[]=imageSource($image['image_url']);$images=array_values(array_unique($images));
 $deliveries=query('SELECT name,cost,payer FROM shipping_methods WHERE active=1 ORDER BY cost,id')->fetchAll();
 ?>
 <nav class="breadcrumbs" aria-label="Putanja"><a href="./">Naslovnica</a><span>/</span><?php if($detail['category_id']):?><a href="?category=<?=$detail['category_id']?>#ponuda"><?=e($detail['category_name']??'Kategorija')?></a><span>/</span><?php endif;?><span><?=e($detail['name'])?></span></nav>
