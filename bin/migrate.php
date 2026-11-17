@@ -71,5 +71,10 @@ try{
         foreach(explode(';',file_get_contents(dirname(__DIR__).'/database/migrations/011_alpha_photos.sql')) as $sql)if(trim($sql)!=='')$db->exec($sql);
         echo "Migracija 011 Alpha fotografije je primijenjena.\n";
     }
+    if(!$db->query("SELECT COUNT(*) FROM schema_migrations WHERE version='012_brands_slider'")->fetchColumn()) {
+        $columns=$db->query('SHOW COLUMNS FROM products')->fetchAll(PDO::FETCH_COLUMN);
+        foreach(explode(';',file_get_contents(dirname(__DIR__).'/database/migrations/012_brands_slider.sql')) as $sql)if(trim($sql)!=='')$db->exec($sql);
+        echo "Migracija 012 Brendovi i slider je primijenjena.\n";
+    }
 }catch(Throwable $e){fwrite(STDERR,$e->getMessage()."\nMigracija može biti djelimično primijenjena jer MySQL DDL nije transakcijski. Vratite backup prije novog pokušaja.\n");exit(1);}
 finally{$db->query("SELECT RELEASE_LOCK('webshop_schema_upgrade')");}

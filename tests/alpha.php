@@ -32,7 +32,7 @@ foreach(['alpha-pro'=>'Sve za vašu radionicu.','alpha-premium'=>'Perfekcija u s
     $settings['store_theme']=$theme;
     alphaExpect(alphaTheme()&&storeTheme()===$theme,'theme allowlist: '.$theme);
     ob_start();alphaHero();$html=ob_get_clean();
-    alphaExpect(str_contains(strip_tags($html),$headline)&&str_contains($html,'321,12 KM'),'theme renders data and distinct headline: '.$theme);
+    alphaExpect(str_contains($html,'data-slide')&&str_contains($html,'321,12 KM'),'theme renders selected product slides: '.$theme);
 }
 $settings['store_theme']='untrusted';alphaExpect(storeTheme()==='classic'&&!alphaTheme(),'invalid themes fall back safely');
 query("UPDATE settings SET setting_value='alpha-pro' WHERE setting_key='store_theme'");

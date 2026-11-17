@@ -36,7 +36,7 @@ function alphaHero(): void {
     $photo='assets/alpha/'.($premium?'premium-studio.webp':($pro?'spray-guns.jpg':'workshop-spray.jpg'));
     $slides=heroProducts();$spotlight=$slides[0]??null;
     ?>
-    <section class="alpha-hero alpha-photo-hero" aria-labelledby="alpha-title">
+    <?php if($slides):alphaProductCarousel($slides,$photo);else:?><section class="alpha-hero alpha-photo-hero" aria-labelledby="alpha-title">
       <div class="alpha-hero-image"><img src="<?=e($photo)?>" alt="<?=$premium?'Profesionalno poliranje vozila':($pro?'Profesionalni pištolji za lakiranje':'Rad u lakirerskoj radionici')?>" fetchpriority="high" width="1200" height="720"></div>
       <div class="alpha-hero-copy"><p class="alpha-kicker">ZA PROMJENU, PROBAJTE KVALITET.</p>
         <h1 id="alpha-title"><?=$pro?'Sve za vašu radionicu.':($premium?'Perfekcija u svakom <em>sloju.</em>':'Od pripreme do savršenog sjaja.')?></h1>
@@ -45,7 +45,7 @@ function alphaHero(): void {
         <?php if($spotlight):?><a class="alpha-hero-product" href="<?=e(productLink((int)$spotlight['id']))?>">Izdvojeno: <?=e($spotlight['name'])?> · <?=money((float)$spotlight['price'])?> →</a><?php endif;?>
       </div>
     </section>
-    <?php if($categories):?><section class="alpha-categories" aria-label="Kategorije proizvoda"><?php foreach($categories as $category):?><a class="alpha-category-<?=e($category['slug'])?>" href="?category=<?=(int)$category['id']?>#ponuda"><?php if(alphaTheme()):?><div class="alpha-category-icon"><?=alphaIcon((string)$category['slug'])?></div><?php else:?><div class="alpha-category-photo"><img src="<?=e(alphaCategoryPhoto($category))?>" alt="" loading="lazy" width="320" height="200"></div><?php endif;?><span class="alpha-category-label"><strong><?=e($premium&&$category['slug']==='priprema-povrsine'?'Priprema':$category['name'])?></strong><span aria-hidden="true">→</span></span></a><?php endforeach;?></section><?php endif;?>
+    <?php endif;if($categories):?><section class="alpha-categories" aria-label="Kategorije proizvoda"><?php foreach($categories as $category):?><a class="alpha-category-<?=e($category['slug'])?>" href="?category=<?=(int)$category['id']?>#ponuda"><?php if(alphaTheme()):?><div class="alpha-category-icon"><?=alphaIcon((string)$category['slug'])?></div><?php else:?><div class="alpha-category-photo"><img src="<?=e(alphaCategoryPhoto($category))?>" alt="" loading="lazy" width="320" height="200"></div><?php endif;?><span class="alpha-category-label"><strong><?=e($premium&&$category['slug']==='priprema-povrsine'?'Priprema':$category['name'])?></strong><span aria-hidden="true">→</span></span></a><?php endforeach;?></section><?php endif;?>
     <?php
 }
 function alphaPromotion(): void { ?>

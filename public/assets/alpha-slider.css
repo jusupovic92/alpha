@@ -1,0 +1,46 @@
+/* Alpha 1.5 — product announcements, official logo tiles. */
+.storefront[data-store-theme^=alpha-] .alpha-product-carousel{height:470px;min-height:0;display:block;position:relative;isolation:isolate;padding:0;overflow:hidden}
+.storefront[data-store-theme^=alpha-] .alpha-product-carousel:after{display:none!important}
+.alpha-product-slide{position:relative;display:grid;grid-template-columns:1.2fr 1fr;align-items:center;height:100%;gap:25px;padding:35px 42px 70px;overflow:hidden}
+.alpha-slide-backdrop{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.alpha-slide-backdrop img{height:100%;width:100%;object-fit:cover;object-position:70% center;opacity:.3;display:block}
+.alpha-slide-backdrop:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#f2f8f4fa,#f2f8f4df 50%,#f2f8f430)}
+.alpha-slide-copy{min-width:0;align-self:center}
+.storefront[data-store-theme^=alpha-] .alpha-product-carousel h1{font-size:42px;line-height:1.08;letter-spacing:-1.5px;margin:0 0 16px;max-width:600px;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.storefront[data-store-theme^=alpha-] .alpha-product-carousel .alpha-kicker{font-size:9px;letter-spacing:1.5px;margin:0 0 14px;color:#4e795f}
+.alpha-slide-description{font-size:13px;line-height:1.6;color:#476652;margin:0 0 17px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.alpha-slide-price{margin:0 0 19px;line-height:1.3}
+.storefront[data-store-theme^=alpha-] .alpha-slide-price .price{font-size:31px!important;line-height:1.2}
+.alpha-slide-copy>.btn{font-size:12px!important;min-height:44px;padding:12px 19px!important;border-radius:5px!important;gap:20px!important}
+.alpha-slide-visual{display:flex;align-items:center;justify-content:center;height:315px;width:100%;max-width:430px;justify-self:end;border-radius:12px;background:#fff;box-shadow:0 12px 40px #0b301d20;overflow:hidden;border:1px solid #dae8df}
+.alpha-slide-visual>img{width:100%;height:100%;display:block;object-fit:contain;padding:24px}
+.alpha-slide-visual.has-banner>img{padding:0;object-fit:contain}
+.alpha-slider-controls{display:flex;align-items:center;justify-content:center;gap:8px;position:absolute;z-index:3;bottom:14px;left:20px;right:20px;min-height:42px}
+.alpha-slider-controls>button{flex:none;width:40px;height:40px;min-height:40px;border-radius:50%;padding:0;background:#ffffffd9!important;color:#24613d!important;border:1px solid #b8d5c3;display:grid;place-items:center;font-size:17px;box-shadow:0 2px 9px #173d1e08}
+.alpha-slider-dots{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;max-width:calc(100% - 145px)}
+.alpha-slider-dots button{width:22px;min-width:22px;height:22px;min-height:22px;padding:0;border-radius:50%;background:#c5d9cc!important;color:#376248!important;font-size:10px;border:1px solid transparent;display:grid;place-items:center}
+.alpha-slider-dots button[aria-pressed=true]{background:#009b56!important;color:#fff!important;border-color:#009b56}
+.alpha-slider-controls button:hover{box-shadow:0 0 0 3px #00b26422}
+.alpha-slider-controls button:focus-visible{outline:2px solid #e9912b;outline-offset:3px}
+.storefront[data-store-theme=alpha-premium] .alpha-slide-backdrop img{opacity:.56}
+.storefront[data-store-theme=alpha-premium] .alpha-slide-backdrop:after{background:linear-gradient(90deg,#08130ef0,#08130ecc 45%,#08130e20)}
+.storefront[data-store-theme=alpha-premium] .alpha-product-carousel .alpha-kicker{color:#ffa13a!important}
+.storefront[data-store-theme=alpha-premium] .alpha-slide-description{color:#c7dbd0}
+.storefront[data-store-theme=alpha-premium] .alpha-slide-price .price{color:#6ee3a6!important}
+.storefront[data-store-theme=alpha-premium] .alpha-slide-visual{border-color:#7bb29155;box-shadow:0 15px 40px #0005}
+.storefront[data-store-theme=alpha-premium] .alpha-slider-controls>button{background:#183d2be6!important;color:#d3eadd!important;border-color:#3e6a4f}
+.storefront[data-store-theme=alpha-premium] .alpha-slider-dots button{background:#315541!important;color:#c6dfcf!important}
+.storefront[data-store-theme=alpha-premium] .alpha-slider-dots button[aria-pressed=true]{background:#00a55b!important;color:#fff!important}
+.alpha-logo-grid a{min-height:90px!important;padding:15px 22px!important;overflow:hidden}
+.alpha-logo-grid a img{width:100%;height:54px;object-fit:contain;display:block;mix-blend-mode:normal;filter:none!important;transition:transform .22s}
+.alpha-logo-grid a:hover img{transform:scale(1.04)}
+.alpha-logo-grid a strong{font-size:17px;white-space:normal}
+.alpha-logo-grid a.is-dark-logo{background:#14251c!important;color:#fff!important;border:1px solid #345742!important}
+.alpha-logo-grid a.is-dark-logo span{color:#bdd8c9}
+.admin-brand-logo{width:140px;height:65px;background:#fff;display:grid;place-items:center;padding:10px;border-radius:5px;border:1px solid #d9e5dd;font-size:12px}
+.admin-brand-logo img{max-width:100%;max-height:45px;object-fit:contain}
+.admin-brand-logo.is-dark-logo{background:#14251c}
+@media(max-width:1000px){.alpha-product-slide{gap:22px;padding:30px 28px 65px;grid-template-columns:1.1fr 1fr}.storefront[data-store-theme^=alpha-] .alpha-product-carousel h1{font-size:35px}.alpha-slide-visual{height:290px}.alpha-logo-grid a{padding:13px 18px!important}}
+@media(max-width:760px){.storefront[data-store-theme^=alpha-] .alpha-product-carousel{height:650px;min-height:0!important;display:block;margin:14px 0}.alpha-product-slide{grid-template-columns:1fr;grid-template-rows:auto 230px;align-content:start;align-items:start;gap:18px;padding:27px 23px 83px}.storefront[data-store-theme^=alpha-] .alpha-product-carousel h1{font-size:30px;letter-spacing:-1px;line-height:1.08;margin:0 0 13px;-webkit-line-clamp:3;max-width:none}.storefront[data-store-theme^=alpha-] .alpha-product-carousel .alpha-kicker{font-size:8px;letter-spacing:1px;margin-bottom:11px}.alpha-slide-copy{align-self:start}.alpha-slide-description{font-size:12px;line-height:1.55;margin:0 0 12px;-webkit-line-clamp:2}.storefront[data-store-theme^=alpha-] .alpha-slide-price .price{font-size:25px!important}.alpha-slide-price{margin-bottom:14px}.alpha-slide-visual{height:230px;max-width:none;justify-self:stretch;border-radius:9px}.alpha-slide-visual>img{padding:17px}.alpha-slide-copy>.btn{font-size:11px!important;padding:10px 15px!important;min-height:44px}.alpha-slider-controls{bottom:12px;left:14px;right:14px;gap:6px;min-height:48px}.alpha-slider-controls>button{width:38px;height:38px;min-height:38px}.alpha-slider-dots{max-width:calc(100% - 132px);gap:5px}.alpha-slider-dots button{width:20px;min-width:20px;height:20px;min-height:20px;font-size:9px}.alpha-logo-grid a{min-height:70px!important;padding:12px!important}.alpha-logo-grid a img{height:41px}.alpha-slide-backdrop img{object-position:65% center}.alpha-slide-backdrop:after{background:linear-gradient(#f2f8f4fa,#f2f8f4e8 55%,#f2f8f4a0)}.storefront[data-store-theme=alpha-premium] .alpha-slide-backdrop:after{background:linear-gradient(#08130ef5,#08130edd 55%,#08130e90)}}
+@media(max-width:360px){.alpha-product-slide{padding:24px 18px 83px;gap:17px}.storefront[data-store-theme^=alpha-] .alpha-product-carousel h1{font-size:27px}.alpha-logo-grid a{padding:10px!important}.alpha-logo-grid a img{height:35px}}
+@media(prefers-reduced-motion:reduce){.alpha-logo-grid a img{transition:none!important}.alpha-logo-grid a:hover img{transform:none}}

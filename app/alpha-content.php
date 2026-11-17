@@ -30,10 +30,6 @@ function alphaContact(): void {
 }
 
 function alphaLowerHome(): void {
-    $brands=[];
-    foreach(['MAXXT','Mipa','ChemicalWorkz','P&S','EWOCAR','3D'] as $name){
-        if((int)query('SELECT COUNT(*) FROM products WHERE active=1 AND name LIKE ?',['%'.$name.'%'])->fetchColumn()>0)$brands[]=$name;
-    }
     ?>
     <section class="alpha-value-section" aria-labelledby="alpha-value-title"><div class="alpha-value-copy"><p class="alpha-section-kicker">ZA VAŠU RADIONICU</p><h2 id="alpha-value-title">Sve za profesionalan rezultat.</h2><p>Od pripreme površine do završnog poliranja.</p><a class="btn" href="?all=1#ponuda">Istraži ponudu <span aria-hidden="true">→</span></a></div><div class="alpha-value-grid"><?php foreach([
         ['boje-i-lakovi','Pregledna ponuda','Materijali i oprema raspoređeni po kategorijama.'],
@@ -41,7 +37,7 @@ function alphaLowerHome(): void {
         ['priprema-povrsine','Pomoć pri odabiru','Kontaktirajte nas za dodatne informacije.'],
         ['oprema','Sve na jednom mjestu','Od pripreme i brušenja do završne obrade.']
     ] as [$icon,$title,$text]):?><article><?=alphaIcon($icon)?><h3><?=e($title)?></h3><p><?=e($text)?></p></article><?php endforeach;?></div></section>
-    <?php if($brands):?><section class="alpha-brand-section" aria-labelledby="alpha-brand-title"><div class="section-heading"><div><p class="eyebrow">BRENDOVI</p><h2 id="alpha-brand-title">Brendovi za vašu radionicu</h2></div><a class="alpha-view-all" href="?all=1#ponuda">Pogledaj ponudu →</a></div><div class="alpha-brand-grid"><?php foreach($brands as $name):?><a href="?<?=e(http_build_query(['q'=>$name,'all'=>1]))?>#ponuda" aria-label="<?=e('Proizvodi: '.$name)?>"><?=e($name)?><span aria-hidden="true">↗</span></a><?php endforeach;?></div></section><?php endif;?>
+    <?php alphaBrandStrip();?>
     <section class="alpha-advice-section" aria-labelledby="alpha-advice-title"><div class="section-heading"><div><p class="eyebrow">PRAKTIČNO I KORISNO</p><h2 id="alpha-advice-title">Savjeti iz radionice</h2></div></div><div class="alpha-advice-grid"><?php foreach(alphaAdvice() as $slug=>$article):?><a class="alpha-advice-card" href="?page=advice&amp;article=<?=e($slug)?>"><div class="alpha-advice-photo"><img src="assets/alpha/<?=e($article[1])?>" alt="" loading="lazy" width="640" height="400"></div><div class="alpha-advice-copy"><p class="alpha-section-kicker">SAVJETI</p><h3><?=e($article[0])?></h3><span>Pročitaj savjet <b aria-hidden="true">→</b></span></div></a><?php endforeach;?></div></section>
     <section class="alpha-contact-banner"><div><p class="alpha-section-kicker">ZA SVAKI KORAK POSLA</p><h2>Trebate materijal za radionicu?</h2><p>Od pripreme i brušenja, preko lakiranja, do poliranja i završne obrade.</p><div class="alpha-actions"><a class="btn" href="?all=1#ponuda">Pogledaj proizvode →</a><a class="btn secondary" href="?page=info&amp;section=kontakt">Kontaktirajte nas</a></div></div></section>
     <?php

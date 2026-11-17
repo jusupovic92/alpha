@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 function fontScale(string $surface):string {$value=(int)setting($surface==='admin'?'admin_font_scale':'store_font_scale',$surface==='admin'?'120':'115');return (string)(max(100,min(140,$value))/100);}
 function heroProducts():array {
-    return query('SELECT p.*,c.name category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.active=1 AND p.hero_selected=1 ORDER BY p.created_at DESC,p.id DESC LIMIT 3')->fetchAll();
+    $count=sliderConfig()['count'];$order=brandsReady()?'COALESCE(p.hero_selected_at,p.created_at) DESC,p.id DESC':'p.created_at DESC,p.id DESC';
+    return query('SELECT p.*,c.name category_name FROM products p LEFT JOIN categories c ON c.id=p.category_id WHERE p.active=1 AND p.hero_selected=1 ORDER BY '.$order.' LIMIT '.$count)->fetchAll();
 }
 function imageSource(?string $url,string $sku=''):string {
     $url=alphaImage((string)$url,$sku);
