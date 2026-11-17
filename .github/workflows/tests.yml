@@ -49,3 +49,5 @@ jobs:
       - run: php tests/partners.php
 
       - run: node tests/partners-http.mjs
+
+      - run: php tests/render-partners.php

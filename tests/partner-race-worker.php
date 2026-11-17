@@ -1,0 +1,6 @@
+<?php
+declare(strict_types=1);
+$name=getenv('TEST_DB_NAME')?:'webshop_test';if(!preg_match('/^webshop_test(?:_[a-z0-9]+)?$/D',$name))exit(2);
+$db=new PDO('mysql:host='.(getenv('TEST_DB_HOST')?:'127.0.0.1').';port='.(getenv('TEST_DB_PORT')?:'33317').';dbname='.$name.'_partners;charset=utf8mb4',getenv('TEST_DB_USER')?:'root',getenv('TEST_DB_PASSWORD')?:'local_test_only',[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);require dirname(__DIR__).'/app/services.php';$settings=query('SELECT setting_key,setting_value FROM settings')->fetchAll(PDO::FETCH_KEY_PAIR);$_SESSION=[];
+[$script,$deadline,$mode,$partner,$product,$shipping,$token]=$argv;while(microtime(true)<(float)$deadline)usleep(1000);
+try{if($mode==='retail')$id=checkout([(int)$product=>2],['customer_name'=>'Race','email'=>'race@example.test','phone'=>'123','address'=>'Test','city'=>'Test','note'=>'Race'],(int)$shipping,'cod',$token);else $id=createPartnerOrder((int)$partner,[(int)$product=>2],['contact_name'=>'Race','phone'=>'123','address'=>'Test','city'=>'Test','note'=>'Race','shipping_id'=>$shipping],$token);echo 'OK:'.$id;}catch(RuntimeException $e){if(str_contains($e->getMessage(),'dostup'))echo 'SOLD_OUT';else{fwrite(STDERR,$e->getMessage());exit(2);}}
