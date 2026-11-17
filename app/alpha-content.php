@@ -37,7 +37,7 @@ function alphaLowerHome(): void {
     ?>
     <section class="alpha-value-section" aria-labelledby="alpha-value-title"><div class="alpha-value-copy"><p class="alpha-section-kicker">ZA VAŠU RADIONICU</p><h2 id="alpha-value-title">Sve za profesionalan rezultat.</h2><p>Od pripreme površine do završnog poliranja.</p><a class="btn" href="?all=1#ponuda">Istraži ponudu <span aria-hidden="true">→</span></a></div><div class="alpha-value-grid"><?php foreach([
         ['boje-i-lakovi','Pregledna ponuda','Materijali i oprema raspoređeni po kategorijama.'],
-        ['bag','Dostupnost artikala','Pregledajte stanje uz svaki proizvod.'],
+        ['bag',inventoryEnabled()?'Dostupnost artikala':'Jednostavno naručivanje',inventoryEnabled()?'Pregledajte stanje uz svaki proizvod.':'Odaberite artikle i pošaljite narudžbu.'],
         ['priprema-povrsine','Pomoć pri odabiru','Kontaktirajte nas za dodatne informacije.'],
         ['oprema','Sve na jednom mjestu','Od pripreme i brušenja do završne obrade.']
     ] as [$icon,$title,$text]):?><article><?=alphaIcon($icon)?><h3><?=e($title)?></h3><p><?=e($text)?></p></article><?php endforeach;?></div></section>
@@ -60,6 +60,6 @@ function alphaContentPage(string $action): void {
     <?php if($section==='dostava'):?><p>Dostupne načine dostave i konačan trošak birate prije potvrde narudžbe.</p><?php $methods=query('SELECT * FROM shipping_methods WHERE active=1 ORDER BY id')->fetchAll();foreach($methods as $method):?><section><h2><?=e($method['name'])?></h2><p><?=money(deliveryCharge($method)/100)?> · <?=e(deliveryPayers()[$method['payer']]??'')?></p><p><?=nl2br(e((string)$method['terms']))?></p></section><?php endforeach;?><h2>Plaćanje</h2><p>Pouzećem pri preuzimanju.<?php if(setting('bank_details')!==''):?> Dostupna je i uplata na račun prema podacima prikazanim tokom naručivanja.<?php endif;?></p>
     <?php elseif($section==='privatnost'):?><p><?=nl2br(e(setting('privacy_text','Podaci uneseni pri naručivanju koriste se za obradu narudžbe. Za pitanja o obradi podataka kontaktirajte prodavnicu.')))?></p><p>Za rad korpe i prijave koristi se sesija preglednika.</p>
     <?php elseif($section==='reklamacije'):?><p>Za prijavu problema s narudžbom, zahtjev za povrat ili reklamaciju kontaktirajte prodavnicu. Navedite broj narudžbe, proizvod i kratak opis problema. Fotografije možete poslati putem e-maila.</p><p>Prije slanja proizvoda zatražite upute za povrat.</p><?php alphaContact();?>
-    <?php elseif($section==='uslovi'):?><p>Uz svaki proizvod prikazani su cijena i trenutno stanje. U korpi pregledajte količine, zatim unesite podatke za isporuku, odaberite dostavu i način plaćanja. Konačan iznos prikazuje se prije potvrde narudžbe.</p><p>Za dodatne informacije o prodavcu i uslovima kupovine obratite se prodavnici.</p><?php alphaContact();?>
-    <?php else:?><p>Za pomoć pri izboru materijala, informacije o proizvodima ili upit o narudžbi koristite sljedeće kontakte.</p><?php alphaContact();endif;endif;?></article><?php
+    <?php elseif($section==='uslovi'):?><p>Uz svaki proizvod prikazana je cijena. U korpi pregledajte količine, zatim unesite podatke za isporuku, odaberite dostavu i način plaćanja. Konačan iznos prikazuje se prije potvrde narudžbe.</p><p>Za dodatne informacije o prodavcu i uslovima kupovine obratite se prodavnici.</p><?php alphaContact();?>
+    <?php else:?><p>Za pomoć pri izboru materijala, informacije o proizvodima ili upit o narudžbi koristite sljedeće kontakte.</p><?php alphaContact();renderContactForm();endif;endif;?></article><?php
 }

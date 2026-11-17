@@ -5,7 +5,7 @@ $from=(string)($_GET['from']??date('Y-m-01'));$to=(string)($_GET['to']??date('Y-
 foreach([$from,$to] as $date){$d=DateTimeImmutable::createFromFormat('!Y-m-d',$date);if(!$d||$d->format('Y-m-d')!==$date){http_response_code(422);exit('Neispravan datum izvještaja.');}}
 if($from>$to){http_response_code(422);exit('Početni datum mora biti prije završnog.');}
 $until=(new DateTimeImmutable($to))->modify('+1 day')->format('Y-m-d');
-$export=(string)($_GET['export']??'');
+$export=(string)($_GET['export']??'');if(!inventoryEnabled()&&in_array($export,['stock','movements'],true)){http_response_code(403);exit('Lager je isključen.');}
 if($export!==''){
     if(in_array($export,['stock','movements'],true))requirePermission('inventory');elseif($export==='payments'){requirePermission('orders');requirePermission('payments');}else{http_response_code(400);exit('Nepoznat izvještaj.');}
     header('Content-Type: text/csv; charset=UTF-8');header('Content-Disposition: attachment; filename="webshop-'.$export.'-'.date('Ymd').'.csv"');header('Cache-Control: no-store');

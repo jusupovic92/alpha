@@ -2,7 +2,7 @@
 declare(strict_types=1);
 requirePermission('print');
 $stock=($_GET['type']??'')==='stock';
-if($stock)requirePermission('inventory');else requirePermission('orders');
+if($stock&&!inventoryEnabled()){http_response_code(403);exit('Lager je isključen.');}if($stock)requirePermission('inventory');else requirePermission('orders');
 $o=$stock?null:query('SELECT * FROM orders WHERE id=?',[(int)($_GET['id']??0)])->fetch();
 if(!$stock&&!$o){http_response_code(404);exit('Narudžba ne postoji.');}
 ?><!doctype html><html lang="bs"><head><meta charset="utf-8"><title><?=$stock?'Lagerlista':'Pošiljka #'.$o['id']?></title><link rel="stylesheet" href="assets/style.css"><script src="assets/print.js" defer></script></head><body class="print-page"><div class="no-print"><button id="print-button">Štampaj / sačuvaj PDF</button> <a href="admin.php">Administracija</a></div><main>

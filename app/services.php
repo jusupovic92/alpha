@@ -3,6 +3,8 @@ declare(strict_types=1);
 require_once __DIR__.'/domain.php';
 function query(string $sql, array $args=[]): PDOStatement { global $db; $s=$db->prepare($sql); $s->execute($args); return $s; }
 function setting(string $key, string $default=''): string { global $settings; return (string)($settings[$key]??$default); }
+function inventoryEnabled(): bool { return setting('inventory_enabled','1')==='1'; }
+function productOrderable(array $product): bool { return !inventoryEnabled()||(int)$product['stock']>0; }
 function checkoutRateLimit(string $ip):void {
     global $db;$key=hash('sha256','checkout:'.$ip);$now=time();
     try{
@@ -35,6 +37,8 @@ function checkout(array $cart, array $fields, int $shipping, string $payment, st
         $db->beginTransaction();
         $existing=query('SELECT id FROM orders WHERE checkout_token=?',[$token])->fetchColumn();
         if($existing){$db->commit();return (int)$existing;}
+        $mode=query("SELECT setting_value FROM settings WHERE setting_key='inventory_enabled' FOR UPDATE")->fetchColumn();
+        $tracked=$mode===false||$mode==='1';
         $delivery=query('SELECT * FROM shipping_methods WHERE id=? AND active=1 FOR UPDATE',[$shipping])->fetch();
         if(!$delivery)throw new RuntimeException('Odaberite dostupnu dostavu.');
         ksort($cart,SORT_NUMERIC); $items=[]; $total=deliveryCharge($delivery);
@@ -42,16 +46,16 @@ function checkout(array $cart, array $fields, int $shipping, string $payment, st
             $qty=filter_var($qty,FILTER_VALIDATE_INT);
             if(!$qty||$qty<1||$qty>100)throw new RuntimeException('Neispravna količina.');
             $p=query('SELECT * FROM products WHERE id=? AND active=1 FOR UPDATE',[(int)$id])->fetch();
-            if(!$p||(int)$p['stock']<$qty)throw new RuntimeException('Proizvod više nije dostupan u traženoj količini.');
+            if(!$p||($tracked&&(int)$p['stock']<$qty))throw new RuntimeException('Proizvod više nije dostupan u traženoj količini.');
             $total+=cents((string)$p['price'])*$qty; $items[]=[$p,$qty];
         }
         if($total>999999999999)throw new RuntimeException('Prevelik iznos narudžbe.');
-        query("INSERT INTO orders(customer_name,email,phone,address,city,note,total,shipping_method,shipping_cost,payment_method,inventory_state,status,checkout_token) VALUES(?,?,?,?,?,?,?,?,?,?,'reserved','preparing',?)",[$fields['customer_name'],$fields['email'],$fields['phone'],$fields['address'],$fields['city'],$fields['note'],decimal($total),$delivery['name'],decimal(deliveryCharge($delivery)),$payment,$token]);
+        query("INSERT INTO orders(customer_name,email,phone,address,city,note,total,shipping_method,shipping_cost,payment_method,inventory_state,status,checkout_token) VALUES(?,?,?,?,?,?,?,?,?,?,?,'preparing',?)",[$fields['customer_name'],$fields['email'],$fields['phone'],$fields['address'],$fields['city'],$fields['note'],decimal($total),$delivery['name'],decimal(deliveryCharge($delivery)),$payment,$tracked?'reserved':'untracked',$token]);
         $order=(int)$db->lastInsertId();query('UPDATE orders SET shipping_terms=?,shipping_payer=? WHERE id=?',[$delivery['terms'],$delivery['payer'],$order]);
         foreach($items as [$p,$qty]){
             query('INSERT INTO order_items(order_id,product_id,product_name,quantity,unit_price) VALUES(?,?,?,?,?)',[$order,$p['id'],$p['name'],$qty,$p['price']]);
-            query('UPDATE products SET stock=stock-?,reserved=reserved+? WHERE id=?',[$qty,$qty,$p['id']]);
-            movement((int)$p['id'],-$qty,'reserve','Rezervacija narudžbe',$order);
+            if($tracked){query('UPDATE products SET stock=stock-?,reserved=reserved+? WHERE id=?',[$qty,$qty,$p['id']]);
+            movement((int)$p['id'],-$qty,'reserve','Rezervacija narudžbe',$order);}
         }
         query('INSERT INTO notifications(order_id,message) VALUES(?,?)',[$order,'Nova narudžba #'.$order]);
         enqueueOrderMail($order);audit('order.created',$order); $db->commit();try{scheduleOrderMail($order);}catch(Throwable){error_log('WEBSHOP: obavijest čeka cron obradu.');}return $order;
@@ -70,7 +74,7 @@ function changeOrder(int $id,string $next,string $tracking,string $courier='',st
         if($next==='cancelled' && $o['payment_status']==='paid')throw new RuntimeException('Prvo evidentirajte povrat novca.');
         if($tracking==='')$tracking=(string)($o['tracking_number']??'');
         $state=$o['inventory_state'];
-        if(in_array($next,['shipped','handed_over','cancelled','returned'],true)){
+        if($state!=='untracked'&&in_array($next,['shipped','handed_over','cancelled','returned'],true)){
             $items=query('SELECT * FROM order_items WHERE order_id=? ORDER BY product_id',[$id])->fetchAll();
             foreach($items as $item){
                 if(!$item['product_id'])continue;
@@ -132,3 +136,5 @@ require_once __DIR__.'/branding.php';
 require_once __DIR__.'/alpha.php';
 
 require_once __DIR__.'/alpha-content.php';
+
+require_once __DIR__.'/contact.php';

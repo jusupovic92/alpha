@@ -13,5 +13,5 @@ function transitions(string $status): array {
 function orderStatus(string $status): string {
     return ['new'=>'U pripremi za slanje','preparing'=>'U pripremi za slanje','shipped'=>'Poslano','delivered'=>'Dostavljeno','handed_over'=>'Predano lično','completed'=>'Otpremljeno (stari zapis)','cancelled'=>'Otkazano','returned'=>'Vraćeno'][$status] ?? $status;
 }
-function isOrderSettled(array $order):bool{return in_array($order['status'],['shipped','delivered','handed_over','completed'],true)&&$order['inventory_state']==='deducted'&&$order['payment_status']==='paid';}
+function isOrderSettled(array $order):bool{return in_array($order['status'],['shipped','delivered','handed_over','completed'],true)&&in_array($order['inventory_state'],['deducted','untracked'],true)&&$order['payment_status']==='paid';}
 function exitReasons():array{return ['withdrawal'=>'Povučeno iz prodaje','write_off'=>'Otpis / oštećenje','personal_sale'=>'Lična prodaja i predaja','other'=>'Drugi izlaz'];}

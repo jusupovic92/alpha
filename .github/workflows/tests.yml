@@ -39,3 +39,5 @@ jobs:
       - run: php tests/alpha.php
 
       - run: php tests/render-alpha.php
+
+      - run: php tests/options-contact.php
