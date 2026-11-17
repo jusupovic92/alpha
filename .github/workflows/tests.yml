@@ -51,3 +51,5 @@ jobs:
       - run: node tests/partners-http.mjs
 
       - run: php tests/render-partners.php
+
+      - run: php tests/usernames.php

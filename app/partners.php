@@ -27,13 +27,13 @@ function currentPartner():?array {
     if(!$p||(int)($_SESSION['partner_version']??0)!==(int)$p['auth_version']||time()-(int)($_SESSION['partner_activity']??0)>1800||($_SESSION['partner_epoch']??'initial')!==($authEpoch??'initial')){unset($_SESSION['partner_id'],$_SESSION['partner_cart'],$_SESSION['partner_checkout_token']);return null;}
     $_SESSION['partner_activity']=time();return $p;
 }
-function partnerLogin(string $email,string $password,string $ip):void {
+function partnerLogin(string $username,string $password,string $ip):void {
     if(!partnersReady())throw new RuntimeException('Modul saradnika još nije postavljen.');
-    $email=mb_strtolower(trim($email));if(strlen($email)>254||strlen($password)>72)throw new RuntimeException('Neispravni podaci za prijavu.');
-    $identity=hash('sha256','partner:'.$email.':'.$ip);$ipIdentity=hash('sha256','partner-ip:'.$ip);
+    $username=normalizeUsername($username);requireUsernames();if(strlen($password)>72)throw new RuntimeException('Neispravni podaci za prijavu.');
+    $identity=hash('sha256','partner:'.$username.':'.$ip);$ipIdentity=hash('sha256','partner-ip:'.$ip);
     if((int)query('SELECT COUNT(*) FROM login_attempts WHERE identity_hash IN (?,?) AND created_at>DATE_SUB(NOW(),INTERVAL 15 MINUTE)',[$identity,$ipIdentity])->fetchColumn()>=20)throw new RuntimeException('Previše pokušaja. Pokušajte ponovo za 15 minuta.');
     query('INSERT INTO login_attempts(identity_hash) VALUES(?),(?)',[$identity,$ipIdentity]);
-    $p=query('SELECT * FROM business_partners WHERE email=? AND active=1',[$email])->fetch();
+    $p=query('SELECT * FROM business_partners WHERE username=? AND active=1',[$username])->fetch();
     $hash=$p['password_hash']??'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
     if(!password_verify($password,$hash)||!$p)throw new RuntimeException('Neispravni podaci za prijavu.');
     query('DELETE FROM login_attempts WHERE identity_hash=?',[$identity]);
@@ -43,14 +43,14 @@ function changePartnerPassword(array $partner,string $old,string $password):void
     global $db;$hash=partnerPassword($password);$db->beginTransaction();try{$p=query('SELECT * FROM business_partners WHERE id=? AND active=1 FOR UPDATE',[$partner['id']])->fetch();if(!$p||$p['auth_version']!==$partner['auth_version']||!password_verify($old,$p['password_hash']))throw new RuntimeException('Trenutna lozinka nije ispravna.');query('UPDATE business_partners SET password_hash=?,must_change_password=0,auth_version=auth_version+1 WHERE id=?',[$hash,$p['id']]);$db->commit();$_SESSION['partner_version']=(int)$p['auth_version']+1;session_regenerate_id(true);$_SESSION['csrf']=bin2hex(random_bytes(32));}catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
 }
 function saveBusinessPartner(int $id,array $input):int {
-    global $db;requirePermission('partners');$values=[];foreach(['company'=>180,'contact_name'=>180,'email'=>254,'phone'=>60,'address'=>255,'city'=>150,'tax_id'=>80] as $k=>$len)$values[$k]=partnerField($input,$k,$len,$k!=='tax_id');
-    $values['email']=mb_strtolower($values['email']);if(!filter_var($values['email'],FILTER_VALIDATE_EMAIL))throw new RuntimeException('Unesite ispravan e-mail saradnika.');
+    global $db;requirePermission('partners');requireUsernames();$values=[];foreach(['company'=>180,'contact_name'=>180,'username'=>64,'email'=>254,'phone'=>60,'address'=>255,'city'=>150,'tax_id'=>80] as $k=>$len)$values[$k]=partnerField($input,$k,$len,$k!=='tax_id');
+    $values['username']=normalizeUsername($values['username']);$values['email']=mb_strtolower($values['email']);if(!filter_var($values['email'],FILTER_VALIDATE_EMAIL))throw new RuntimeException('Unesite ispravan e-mail saradnika.');
     $mode=partnerField($input,'pricing_mode',20);$rate=partnerRate($mode,$input['pricing_rate']??null);$password=$input['password']??'';if(!is_string($password))throw new RuntimeException('Neispravna lozinka.');$hash=$password!==''?partnerPassword($password):null;if(!$id&&!$hash)throw new RuntimeException('Unesite početnu lozinku saradnika.');
     try{$db->beginTransaction();if($id&&!query('SELECT id FROM business_partners WHERE id=? FOR UPDATE',[$id])->fetchColumn())throw new RuntimeException('Saradnik ne postoji.');
     $v=array_values($values);array_push($v,isset($input['active'])?1:0,$mode,decimal($rate));
-    if($id){$v[]=$id;query('UPDATE business_partners SET company=?,contact_name=?,email=?,phone=?,address=?,city=?,tax_id=?,active=?,pricing_mode=?,pricing_rate=?,auth_version=auth_version+1 WHERE id=?',$v);if($hash)query('UPDATE business_partners SET password_hash=?,auth_version=auth_version+1,must_change_password=1 WHERE id=?',[$hash,$id]);}
-    else{array_push($v,$hash);query('INSERT INTO business_partners(company,contact_name,email,phone,address,city,tax_id,active,pricing_mode,pricing_rate,password_hash) VALUES(?,?,?,?,?,?,?,?,?,?,?)',$v);$id=(int)$db->lastInsertId();}audit('partner.saved',$id,'Podaci i uslovi saradnje');$db->commit();return $id;
-    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();if($e instanceof PDOException&&$e->getCode()==='23000')throw new RuntimeException('E-mail se već koristi ili podaci nisu ispravni.');throw $e;}
+    if($id){$v[]=$id;query('UPDATE business_partners SET company=?,contact_name=?,username=?,email=?,phone=?,address=?,city=?,tax_id=?,active=?,pricing_mode=?,pricing_rate=?,auth_version=auth_version+1 WHERE id=?',$v);if($hash)query('UPDATE business_partners SET password_hash=?,auth_version=auth_version+1,must_change_password=1 WHERE id=?',[$hash,$id]);}
+    else{array_push($v,$hash);query('INSERT INTO business_partners(company,contact_name,username,email,phone,address,city,tax_id,active,pricing_mode,pricing_rate,password_hash) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',$v);$id=(int)$db->lastInsertId();}audit('partner.saved',$id,'Podaci i uslovi saradnje');$db->commit();return $id;
+    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();if($e instanceof PDOException&&$e->getCode()==='23000')throw new RuntimeException('Korisničko ime ili e-mail se već koristi, ili podaci nisu ispravni.');throw $e;}
 }
 function savePartnerPrice(int $partner,int $product,array $input):void {
     global $db;requirePermission('partners');try{$db->beginTransaction();if(!query('SELECT id FROM business_partners WHERE id=? FOR UPDATE',[$partner])->fetchColumn()||!query('SELECT id FROM products WHERE id=?',[$product])->fetchColumn())throw new RuntimeException('Saradnik ili artikal ne postoji.');

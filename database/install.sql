@@ -198,3 +198,24 @@ CREATE TABLE IF NOT EXISTS partner_event_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 INSERT IGNORE INTO settings(setting_key,setting_value) VALUES ('mail_partner_enabled','1'),('partner_recipients','');
 INSERT IGNORE INTO schema_migrations(version) VALUES ('013_business_partners');
+
+-- Alpha 1.8. Apply to the existing 1.7 database after backup. Repeatable.
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='username')=0,'ALTER TABLE users ADD username VARCHAR(64) CHARACTER SET ascii COLLATE ascii_general_ci NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='business_partners' AND COLUMN_NAME='username')=0,'ALTER TABLE business_partners ADD username VARCHAR(64) CHARACTER SET ascii COLLATE ascii_general_ci NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+UPDATE users SET username=CONCAT('admin',id) WHERE username IS NULL OR username='';
+UPDATE business_partners SET username=CONCAT('saradnik',id) WHERE username IS NULL OR username='';
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND INDEX_NAME='uq_users_username')=0,'ALTER TABLE users ADD UNIQUE INDEX uq_users_username(username)','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='business_partners' AND INDEX_NAME='uq_partners_username')=0,'ALTER TABLE business_partners ADD UNIQUE INDEX uq_partners_username(username)','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+INSERT IGNORE INTO schema_migrations(version) VALUES ('014_usernames');

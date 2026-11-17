@@ -28,13 +28,13 @@ try{
  await start(false);assert.equal((await request()).status,404,'disabled without private key');
  writeFileSync(keyPath,key);assert.equal((await request()).status,403,'HTTPS mandatory');await stop();cookie='';await start(true);
  let r=await request();assert.equal(r.status,200);const csrf=r.text.match(/name="csrf" value="([a-f0-9]+)"/)[1];
- const fields={csrf,setup_key:key,name:'Setup Admin',email:'setup@example.test',password:'setup-test-password-123',password_confirm:'setup-test-password-123'};
+ const fields={csrf,setup_key:key,name:'Setup Admin',username:'setup-admin',email:'setup@example.test',password:'setup-test-password-123',password_confirm:'setup-test-password-123'};
  assert.equal((await request({...fields,csrf:'bad'})).status,403,'CSRF blocked');
  assert.equal((await request({...fields,setup_key:'wrong'})).status,403,'wrong key blocked');
  assert.equal((await request({...fields,password:'short',password_confirm:'short'})).status,422,'weak password rejected');
  assert.equal((await request({...fields,password_confirm:'different'})).status,422,'confirmation required');
  r=await request(fields);assert.equal(r.status,200);assert(r.text.includes('Administrator je kreiran'));assert(!existsSync(keyPath),'private key removed');
  writeFileSync(keyPath,key);assert.equal((await request()).status,403,'permanent lockout after success');assert.equal((await request(fields)).status,403,'second account rejected');
- const verify=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'],$c['db_user'],$c['db_pass']);$u=$d->query('SELECT * FROM users')->fetchAll(PDO::FETCH_ASSOC);if(count($u)!==1||!password_verify('setup-test-password-123',$u[0]['password_hash'])||!$d->query("SELECT setting_value FROM settings WHERE setting_key='admin_setup_completed'")->fetchColumn())exit(1);`],{cwd:root,encoding:'utf8'});assert.equal(verify.status,0,verify.stderr);
+ const verify=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'],$c['db_user'],$c['db_pass']);$u=$d->query('SELECT * FROM users')->fetchAll(PDO::FETCH_ASSOC);if(count($u)!==1||$u[0]['username']!=='setup-admin'||!password_verify('setup-test-password-123',$u[0]['password_hash'])||!$d->query("SELECT setting_value FROM settings WHERE setting_key='admin_setup_completed'")->fetchColumn())exit(1);`],{cwd:root,encoding:'utf8'});assert.equal(verify.status,0,verify.stderr);
  console.log('PASS: setup disabled by default, HTTPS, CSRF, secret key, password validation, hashed first administrator, key removal and permanent lockout');
 }finally{await stop();if(existsSync(config))unlinkSync(config);if(existsSync(keyPath))unlinkSync(keyPath);rmSync(temp,{recursive:true,force:true});}

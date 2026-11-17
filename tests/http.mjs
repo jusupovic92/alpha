@@ -13,6 +13,7 @@ assert(/^webshop_test(?:_[a-z0-9]+)?$/.test(dbname));
 const quote=s=>"'"+s.replaceAll('\\','\\\\').replaceAll("'","\\'")+"'";
 const cfg={db_host:(process.env.TEST_DB_HOST||'127.0.0.1')+';port='+(process.env.TEST_DB_PORT||'33317'),db_name:dbname,db_user:process.env.TEST_DB_USER||'root',db_pass:process.env.TEST_DB_PASSWORD||'local_test_only'};
 writeFileSync(config,'<?php return ['+Object.entries(cfg).map(([k,v])=>quote(k)+'=>'+quote(v)).join(',')+'];');
+const usernameUpgrade=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'].';charset=utf8mb4',$c['db_user'],$c['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);foreach(['013_business_partners','014_usernames'] as $m)foreach(explode(';',file_get_contents('database/migrations/'.$m.'.sql')) as $sql)if(trim($sql)!=='')$d->exec($sql);$d->exec("UPDATE users SET username=SUBSTRING_INDEX(email,'@',1)");`],{cwd:root,encoding:'utf8'});assert.equal(usernameUpgrade.status,0,usernameUpgrade.stderr);
 const probe=net.createServer();await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));
 const base='http://127.0.0.1:'+port+'/';
 const server=spawn(php,['-S','127.0.0.1:'+port,'-t',path.join(root,'public')],{stdio:['ignore','pipe','pipe']});
@@ -28,8 +29,8 @@ try{
  let ready=false;for(let i=0;i<40;i++){assert.equal(server.exitCode,null,'PHP server stays running');try{await request('');ready=true;break;}catch{await new Promise(r=>setTimeout(r,100));}}assert(ready,'PHP server ready');
  assert.equal((await request('')).status,200);
  assert.equal((await request('admin.php?page=users')).status,200,'anonymous sees login only');
- assert.equal((await request('admin.php',guest,{action:'login',email:'bad@example.test',password:'wrong',csrf:'bad'})).status,403,'CSRF blocked');
- let login=await request('admin.php',admin);let result=await request('admin.php',admin,{action:'login',email:'admin@example.test',password:'test-password-123',csrf:csrf(login.text)});assert.equal(result.status,303);
+ assert.equal((await request('admin.php',guest,{action:'login',username:'bad',password:'wrong',csrf:'bad'})).status,403,'CSRF blocked');
+ let login=await request('admin.php',admin);let result=await request('admin.php',admin,{action:'login',username:'admin',password:'test-password-123',csrf:csrf(login.text)});assert.equal(result.status,303);
  for(const page of ['dashboard','products','products&create=1','categories','inventory','reports','exits','exits&create=1','orders','order&id=2','settings','branding','themes','backups','mail','delivery','users','roles','audit','print&id=2','print&type=stock']){
   result=await request('admin.php?page='+page,admin);assert.equal(result.status,200,page);assert(!result.text.includes('<h1>Prijava</h1>'),page+' authenticated');
  }
@@ -121,13 +122,13 @@ try{
  assert.equal((await request('admin.php?page=products',admin,injection)).status,303);
  assert((await request('admin.php?page=reports&export=stock',admin)).text.includes("'=BAD-SKU"),'CSV formula injection neutralized');
  // A user with no permissions must be denied both pages and direct POST actions.
- const seed=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'],$c['db_user'],$c['db_pass']);$d->exec("INSERT INTO roles(name,permissions) VALUES('Bez dozvola','[]')");$s=$d->prepare('INSERT INTO users(role_id,name,email,password_hash) VALUES(?,?,?,?)');$s->execute([$d->lastInsertId(),'Restricted','restricted@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([3,'Stock','stock@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([4,'Finance','finance@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);`],{cwd:root,encoding:'utf8'});assert.equal(seed.status,0,seed.stderr);
- const restricted=jar();login=await request('admin.php',restricted);assert.equal((await request('admin.php',restricted,{action:'login',email:'restricted@example.test',password:'test-password-123',csrf:csrf(login.text)})).status,303);
+ const seed=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'],$c['db_user'],$c['db_pass']);$d->exec("INSERT INTO roles(name,permissions) VALUES('Bez dozvola','[]')");$s=$d->prepare('INSERT INTO users(role_id,name,email,password_hash) VALUES(?,?,?,?)');$s->execute([$d->lastInsertId(),'Restricted','restricted@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([3,'Stock','stock@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([4,'Finance','finance@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$d->exec("UPDATE users SET username=SUBSTRING_INDEX(email,'@',1) WHERE username IS NULL");`],{cwd:root,encoding:'utf8'});assert.equal(seed.status,0,seed.stderr);
+ const restricted=jar();login=await request('admin.php',restricted);assert.equal((await request('admin.php',restricted,{action:'login',username:'restricted',password:'test-password-123',csrf:csrf(login.text)})).status,303);
  const dashboard=await request('admin.php',restricted);
  for(const page of ['users','roles','orders','inventory','reports','reports&export=stock','exits','exits&export=csv','print&id=2','print&type=stock','settings'])assert.equal((await request('admin.php?page='+page,restricted)).status,403,'restricted '+page);
  assert.equal((await request('admin.php',restricted,{action:'stock',id,quantity:999,note:'unauthorized',csrf:csrf(dashboard.text)})).status,403,'direct POST permission enforcement');
  const staffSessions={};for(const [email,allowed,denied] of [['stock@example.test','stock','payments'],['finance@example.test','payments','stock']]){
-  const staff=jar(),screen=await request('admin.php',staff);assert.equal((await request('admin.php',staff,{action:'login',email,password:'test-password-123',csrf:csrf(screen.text)})).status,303);
+  const staff=jar(),screen=await request('admin.php',staff);assert.equal((await request('admin.php',staff,{action:'login',username:email.split('@')[0],password:'test-password-123',csrf:csrf(screen.text)})).status,303);
   assert.equal((await request('admin.php?page=reports&export='+allowed,staff)).status,200,'authorized '+allowed+' export');
   assert.equal((await request('admin.php?page=reports&export='+denied,staff)).status,403,'unauthorized '+denied+' export');
   staffSessions[email]=staff;
