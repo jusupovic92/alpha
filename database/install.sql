@@ -117,7 +117,7 @@ SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_S
 PREPARE alpha_stmt FROM @alpha_sql;
 EXECUTE alpha_stmt;
 DEALLOCATE PREPARE alpha_stmt;
-SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='products' AND COLUMN_NAME='hero_selected_at')=0,'ALTER TABLE products ADD hero_selected_at DATETIME NULL','SET @alpha_noop=1');
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='products' AND COLUMN_NAME='hero_selected_at')=0,'ALTER TABLE products ADD hero_selected_at DATETIME(6) NULL','SET @alpha_noop=1');
 PREPARE alpha_stmt FROM @alpha_sql;
 EXECUTE alpha_stmt;
 DEALLOCATE PREPARE alpha_stmt;
