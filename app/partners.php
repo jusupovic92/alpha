@@ -19,7 +19,7 @@ function partnerQuote(array $product,array $partner,?array $override=null):array
 function partnerField(array $input,string $key,int $max,bool $required=true):string {
     $v=$input[$key]??'';if(!is_string($v)||str_contains($v,"\0")||mb_strlen($v)>$max||($required&&trim($v)===''))throw new RuntimeException('Provjerite polje: '.$key);return trim($v);
 }
-function partnerPassword(string $password):string {if(strlen($password)<12||strlen($password)>72)throw new RuntimeException('Lozinka mora sadržavati 12–72 bajta.');return password_hash($password,PASSWORD_DEFAULT);}
+function partnerPassword(string $password):string {if(strlen($password)<12||strlen($password)>72||trim($password)!==$password||preg_match('/[\x00-\x1f\x7f]/',$password))throw new RuntimeException('Lozinka mora sadržavati 12–72 bajta, bez kontrolnih znakova i razmaka na početku ili kraju.');return password_hash($password,PASSWORD_DEFAULT);}
 function currentPartner():?array {
     if(empty($_SESSION['partner_id'])||!partnersReady())return null;
     $p=query('SELECT * FROM business_partners WHERE id=? AND active=1',[(int)$_SESSION['partner_id']])->fetch();
@@ -37,7 +37,7 @@ function partnerLogin(string $email,string $password,string $ip):void {
     $hash=$p['password_hash']??'$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.';
     if(!password_verify($password,$hash)||!$p)throw new RuntimeException('Neispravni podaci za prijavu.');
     query('DELETE FROM login_attempts WHERE identity_hash=?',[$identity]);
-    session_regenerate_id(true);global $authEpoch;$_SESSION['partner_id']=(int)$p['id'];$_SESSION['partner_version']=(int)$p['auth_version'];$_SESSION['partner_epoch']=$authEpoch??'initial';$_SESSION['partner_activity']=time();$_SESSION['partner_cart']=[];$_SESSION['partner_checkout_token']=bin2hex(random_bytes(32));$_SESSION['csrf']=bin2hex(random_bytes(32));
+    unset($_SESSION['user_id'],$_SESSION['auth_epoch']);session_regenerate_id(true);global $authEpoch;$_SESSION['partner_id']=(int)$p['id'];$_SESSION['partner_version']=(int)$p['auth_version'];$_SESSION['partner_epoch']=$authEpoch??'initial';$_SESSION['partner_activity']=time();$_SESSION['partner_cart']=[];$_SESSION['partner_checkout_token']=bin2hex(random_bytes(32));$_SESSION['csrf']=bin2hex(random_bytes(32));
 }
 function changePartnerPassword(array $partner,string $old,string $password):void {
     global $db;$hash=partnerPassword($password);$db->beginTransaction();try{$p=query('SELECT * FROM business_partners WHERE id=? AND active=1 FOR UPDATE',[$partner['id']])->fetch();if(!$p||$p['auth_version']!==$partner['auth_version']||!password_verify($old,$p['password_hash']))throw new RuntimeException('Trenutna lozinka nije ispravna.');query('UPDATE business_partners SET password_hash=?,must_change_password=0,auth_version=auth_version+1 WHERE id=?',[$hash,$p['id']]);$db->commit();$_SESSION['partner_version']=(int)$p['auth_version']+1;session_regenerate_id(true);$_SESSION['csrf']=bin2hex(random_bytes(32));}catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}

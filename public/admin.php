@@ -34,7 +34,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             query('INSERT INTO login_attempts(identity_hash) VALUES(?),(?)',[$ip,$identity]);
             $u=query('SELECT * FROM users WHERE email=? AND active=1',[$email])->fetch();
             if(!$u||!password_verify((string)($_POST['password']??''),$u['password_hash']))throw new RuntimeException('Neispravni podaci za prijavu.');
-            session_regenerate_id(true);$_SESSION['user_id']=(int)$u['id'];$_SESSION['auth_epoch']=$authEpoch;$_SESSION['csrf']=bin2hex(random_bytes(32));
+            unset($_SESSION['partner_id'],$_SESSION['partner_cart'],$_SESSION['partner_checkout_token']);session_regenerate_id(true);$_SESSION['user_id']=(int)$u['id'];$_SESSION['auth_epoch']=$authEpoch;$_SESSION['csrf']=bin2hex(random_bytes(32));
             redirect('admin.php');
         }
         if(!currentUser()){http_response_code(401);exit('Prijavite se.');}
