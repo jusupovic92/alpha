@@ -8,6 +8,7 @@ if(is_file($config))exit("Preview refuses existing configuration.\n");
 $values=['db_host'=>(getenv('TEST_DB_HOST')?:'127.0.0.1').';port='.(getenv('TEST_DB_PORT')?:'33317'),'db_name'=>$base.'_alpha','db_user'=>getenv('TEST_DB_USER')?:'root','db_pass'=>getenv('TEST_DB_PASSWORD')?:'local_test_only'];
 $db=new PDO('mysql:host='.$values['db_host'].';dbname='.$values['db_name'].';charset=utf8mb4',$values['db_user'],$values['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
 $db->exec("UPDATE products SET price=300 WHERE sku='ALPHA-DEMO-001'");
+$db->exec("UPDATE products SET hero_selected=1,hero_selected_at=DATE_ADD(created_at,INTERVAL id MICROSECOND) WHERE sku IN ('ALPHA-DEMO-001','ALPHA-DEMO-002','ALPHA-DEMO-003')");
 try{
     file_put_contents($config,'<?php return '.var_export($values,true).';');
     $db->exec("INSERT INTO settings(setting_key,setting_value) VALUES('inventory_enabled','0'),('mail_contact_enabled','1') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)");
