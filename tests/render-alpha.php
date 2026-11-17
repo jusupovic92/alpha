@@ -10,11 +10,18 @@ $db=new PDO('mysql:host='.$values['db_host'].';dbname='.$values['db_name'].';cha
 $db->exec("UPDATE products SET price=300 WHERE sku='ALPHA-DEMO-001'");
 try{
     file_put_contents($config,'<?php return '.var_export($values,true).';');
+    $db->exec("INSERT INTO settings(setting_key,setting_value) VALUES('inventory_enabled','0'),('mail_contact_enabled','1') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)");
+    $db->exec("UPDATE settings SET setting_value='shop@example.test' WHERE setting_key='mail_from'");
+    $db->exec("UPDATE settings SET setting_value='contact@example.test' WHERE setting_key='mail_recipients'");
     foreach(['alpha-pro','alpha-premium','alpha-hybrid'] as $theme){
         $update=$db->prepare("UPDATE settings SET setting_value=? WHERE setting_key='store_theme'");$update->execute([$theme]);
         $process=proc_open([PHP_BINARY,'-r','$_SERVER["REQUEST_METHOD"]="GET"; $_SERVER["HTTPS"]="on"; require "public/index.php";'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$root);
         fclose($pipes[0]);$html=stream_get_contents($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
         if(proc_close($process)!==0||$errors!==''||!str_contains($html,'alpha-photo-hero'))throw new RuntimeException($errors?:'Preview did not render.');
         echo 'ALPHA_PREVIEW '.$theme.' '.base64_encode($html)."\n";
+        $process=proc_open([PHP_BINARY,'-r','$_GET=["page"=>"info","section"=>"kontakt"]; $_SERVER["REQUEST_METHOD"]="GET"; $_SERVER["HTTPS"]="on"; require "public/index.php";'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$root);
+        fclose($pipes[0]);$html=stream_get_contents($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
+        if(proc_close($process)!==0||$errors!==''||!str_contains($html,'class="alpha-contact-form"'))throw new RuntimeException($errors?:'Contact form did not render.');
+        echo 'ALPHA_PREVIEW '.$theme.'-contact '.base64_encode($html)."\n";
     }
 }finally{if(is_file($config))unlink($config);}
