@@ -247,6 +247,15 @@ try{
  assert.equal((await request('?page=contact',buyer,contactPost)).status,303);
  assert((await request('?page=info&section=kontakt&sent=1',buyer)).text.includes('Vaš upit je zaprimljen'));
  assert((await request('admin.php?page=mail',admin)).text.includes('Kontakt upit'));
+ const contactAdmin=await request('admin.php?page=contact',admin);assert.equal(contactAdmin.status,200);assert(contactAdmin.text.includes('contact_map_embed')&&contactAdmin.text.includes('contact_recipients'));
+ assert.equal((await request('admin.php?page=contact',stockStaff)).status,403,'private contact editor requires settings permission');
+ const contactSettings={action:'contact_settings',csrf:csrf(contactAdmin.text),contact_company:'Alpha Čedo',contact_title:'Kontaktirajte nas',contact_email:'public@example.test',sender_phone:'+387 61 401 860',contact_address:'Melente Bošnjaka 9, Kakanj',contact_recipients:'private-leads@example.test',contact_map_embed:'https://www.google.com/maps/embed?pb=test',contact_form_enabled:'on',contact_map_enabled:'on',contact_topbar_enabled:'on',mail_contact_enabled:'on'};
+ assert.equal((await request('admin.php?page=contact',stockStaff,{...contactSettings,csrf:csrf(staffExitForm.text)})).status,403);
+ assert.equal((await request('admin.php?page=contact',admin,{...contactSettings,csrf:'invalid'})).status,403);
+ const invalidMap=await request('admin.php?page=contact',admin,{...contactSettings,contact_map_embed:'https://evil.test/maps/embed'});assert.equal(invalidMap.status,200);assert(invalidMap.text.includes('mora biti HTTPS Google Maps'));
+ assert.equal((await request('admin.php?page=contact',admin,contactSettings)).status,303);
+ const savedContact=await request('?page=info&section=kontakt',buyer);assert(savedContact.text.includes('Alpha Čedo')&&savedContact.text.includes('<iframe')&&savedContact.text.includes('public@example.test'));assert(!savedContact.text.includes('private-leads@example.test'));
+ console.log('PASS: contact administration, CSRF and permissions, safe map embed and private recipients through HTTP');
  console.log('PASS: HTTP inventory toggle, zero-stock checkout and contact validation/queue');
  console.log('PASS: three Alpha layouts, persisted selection, SKU search and protected repeatable demo import');
  console.log('PASS: HTTP checkout, paid preparation to dispatched/paid, courier and tracking, order filters, typed exits, notes, reversals, CSV and separate warehouse/finance permissions; storefront regressions pass');
