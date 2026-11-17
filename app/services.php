@@ -142,3 +142,5 @@ require_once __DIR__.'/contact.php';
 require_once __DIR__.'/brands-slider.php';
 
 require_once __DIR__.'/contact-page.php';
+
+require_once __DIR__.'/partners.php';

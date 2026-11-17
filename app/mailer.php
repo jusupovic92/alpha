@@ -47,11 +47,13 @@ function sendConfiguredMail(array $job,array $config):void {
     $mail->setFrom($config['mail_from'],$config['mail_from_name']);$mail->addAddress($job['recipient']);if(str_starts_with($job['subject'],'WEBSHOP: kontakt - ')&&preg_match('/^E-mail pošiljaoca: ([^\r\n]+)$/m',$job['body'],$reply)&&filter_var($reply[1],FILTER_VALIDATE_EMAIL))$mail->addReplyTo($reply[1]);$mail->Subject=$job['subject'];$mail->Body=$job['body'];$mail->send();
 }
 function processMailQueue(int $limit=20,?int $order=null,?callable $sender=null,?array $jobIds=null):int {
-    global $db;if(is_file(dirname(__DIR__).'/storage/maintenance.flag'))return 0;$config=mailConfig();if(($config['mail_enabled']??'0')!=='1'&&!contactMailEnabled($config))return 0;
+    global $db;if(is_file(dirname(__DIR__).'/storage/maintenance.flag'))return 0;$config=mailConfig();if(($config['mail_enabled']??'0')!=='1'&&!contactMailEnabled($config)&&!partnerMailEnabled($config))return 0;
     if((int)query("SELECT GET_LOCK('webshop_mail_jobs',0)")->fetchColumn()!==1)return 0;$count=0;
     try{$args=[];$filter=$order!==null?' AND order_id=?':'';if($order!==null)$args[]=$order;
         if(($config['mail_enabled']??'0')!=='1')$filter.=' AND order_id IS NULL';
+        if(($config['mail_enabled']??'0')!=='1'&&!contactMailEnabled($config))$filter.=" AND subject LIKE 'WEBSHOP: B2B #%'";
         if(!contactMailEnabled($config))$filter.=" AND subject NOT LIKE 'WEBSHOP: kontakt - %'";
+        if(!partnerMailEnabled($config)||!partnerMailReady($config))$filter.=" AND subject NOT LIKE 'WEBSHOP: B2B #%'";
         if($jobIds!==null){$ids=array_values(array_filter(array_map('intval',$jobIds),static fn($id)=>$id>0));if(!$ids)return 0;$filter.=' AND id IN ('.implode(',',$ids).')';}
         $jobs=query("SELECT * FROM mail_jobs WHERE status='pending' AND attempts<5 AND (next_attempt_at IS NULL OR next_attempt_at<=NOW()) $filter ORDER BY id LIMIT ".max(1,min(20,$limit)),$args)->fetchAll();
         foreach($jobs as $job){if($job['order_id']&&!in_array(query('SELECT status FROM orders WHERE id=?',[$job['order_id']])->fetchColumn(),['new','preparing'],true)){query("UPDATE mail_jobs SET status='cancelled' WHERE id=?",[$job['id']]);continue;}

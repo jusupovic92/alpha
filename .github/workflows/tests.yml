@@ -45,3 +45,7 @@ jobs:
       - run: php tests/brands-slider.php
 
       - run: php tests/contact-page.php
+
+      - run: php tests/partners.php
+
+      - run: node tests/partners-http.mjs
