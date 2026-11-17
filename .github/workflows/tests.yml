@@ -41,3 +41,5 @@ jobs:
       - run: php tests/render-alpha.php
 
       - run: php tests/options-contact.php
+
+      - run: node tests/discover-brand-assets.mjs
