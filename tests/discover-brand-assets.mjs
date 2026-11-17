@@ -1,7 +1,9 @@
-const sites={maxxt:'https://maxxttools.com/',mipa:'https://www.mipa-paints.com/service/downloads/logos/',chemicalworkz:'https://www.chemicalworkz.de/',ps:'https://psdetailproducts.com/',ewocar:'https://ewocar.com/','3d':'https://3dproducts.com/'};
-await Promise.all(Object.entries(sites).map(async([name,url])=>{try{
- const response=await fetch(url,{signal:AbortSignal.timeout(15000),headers:{'User-Agent':'Mozilla/5.0'}});if(!response.ok)throw Error('HTTP '+response.status);const html=await response.text();const found=[];
- for(const match of html.matchAll(/<img\b[^>]*>/gi)){const tag=match[0];if(!/logo/i.test(tag))continue;for(const src of tag.matchAll(/(?:src|data-src)=["']([^"']+)["']/gi)){if(src[1].startsWith('data:'))continue;found.push(new URL(src[1].replaceAll('&amp;','&'),url).href);}}
- for(const match of html.matchAll(/["']([^"']*logo[^"']*\.(?:svg|png|jpg|webp)(?:\?[^"']*)?)["']/gi)){if(match[1].length<500&&!match[1].includes(' '))try{found.push(new URL(match[1].replaceAll('&amp;','&'),url).href)}catch{}}
- console.log('BRAND_ASSETS '+name+' '+JSON.stringify([...new Set(found)].slice(0,16)));
- }catch(e){console.log('BRAND_ASSETS_ERROR '+name+' '+e.message)}}));
+const files={
+maxxt:['png','https://maxxttools.com/cdn/shop/files/LOGO.png?v=1757665551&width=600'],
+mipa:['jpg','https://www.mipa-paints.com/fileadmin/mipa/downloads/logos/mipa_pcs_72dpi.jpg'],
+chemicalworkz:['svg','https://cdn.prod.website-files.com/67cac507eec7d203410f1039/67daa7c78a4542d58837f2f3_logo_chemicalworkz.svg'],
+chemicalalt:['svg','https://cdn.prod.website-files.com/67bc799e8e387cbe01b4ea24/67dbd874531bd5f8c7a17e5f_logo_chemicalworkz.svg'],
+ps:['png','https://psdetailproducts.com/cdn/shop/files/P_S_Red_Logo.png?v=1717528232&width=600'],
+ewocar:['webp','https://ewocar.com/wp-content/uploads/2025/10/ewocar-logo-new.webp'],
+'3d':['png','https://3dproducts.com/cdn/shop/files/Asset_6_3x_b38999b4-824d-449d-90c6-5269015c71e2.png?v=1715739197&width=600']
+}; await Promise.all(Object.entries(files).map(async([name,[ext,url]])=>{try{const r=await fetch(url,{signal:AbortSignal.timeout(20000)});if(!r.ok)throw Error(r.status);const b=Buffer.from(await r.arrayBuffer());if(b.length>1000000)throw Error('Too large');console.log('BRAND_FILE '+name+' '+ext+' '+b.toString('base64'));}catch(e){console.log('BRAND_ERROR '+name+' '+e.message)}}));
