@@ -57,3 +57,5 @@ jobs:
       - run: php tests/partner-password.php
 
       - run: php tests/pickup.php
+
+      - run: php tests/render-pickup.php

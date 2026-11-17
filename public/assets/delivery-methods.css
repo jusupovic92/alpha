@@ -1,1 +1,3 @@
 .admin-app [data-pickup-info][hidden],.admin-app [data-courier-fields][hidden]{display:none!important}.admin-app [data-delivery-method-editor]{max-width:800px}.admin-app [data-pickup-info]{margin:18px 0}.admin-app [data-pickup-info] p{margin:8px 0 0}
+
+.admin-app [data-pickup-info]{display:block}
