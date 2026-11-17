@@ -51,7 +51,7 @@ function checkout(array $cart, array $fields, int $shipping, string $payment, st
         }
         if($total>999999999999)throw new RuntimeException('Prevelik iznos narudžbe.');
         query("INSERT INTO orders(customer_name,email,phone,address,city,note,total,shipping_method,shipping_cost,payment_method,inventory_state,status,checkout_token) VALUES(?,?,?,?,?,?,?,?,?,?,?,'preparing',?)",[$fields['customer_name'],$fields['email'],$fields['phone'],$fields['address'],$fields['city'],$fields['note'],decimal($total),$delivery['name'],decimal(deliveryCharge($delivery)),$payment,$tracked?'reserved':'untracked',$token]);
-        $order=(int)$db->lastInsertId();query('UPDATE orders SET shipping_terms=?,shipping_payer=? WHERE id=?',[$delivery['terms'],$delivery['payer'],$order]);
+        $order=(int)$db->lastInsertId();query('UPDATE orders SET shipping_terms=?,shipping_payer=? WHERE id=?',[$delivery['terms'],$delivery['payer'],$order]);if(deliveryTypesReady())query('UPDATE orders SET shipping_type=? WHERE id=?',[deliveryType($delivery),$order]);
         foreach($items as [$p,$qty]){
             query('INSERT INTO order_items(order_id,product_id,product_name,quantity,unit_price) VALUES(?,?,?,?,?)',[$order,$p['id'],$p['name'],$qty,$p['price']]);
             if($tracked){query('UPDATE products SET stock=stock-?,reserved=reserved+? WHERE id=?',[$qty,$qty,$p['id']]);
@@ -69,6 +69,7 @@ function changeOrder(int $id,string $next,string $tracking,string $courier='',st
     try{
         $db->beginTransaction();$o=query('SELECT * FROM orders WHERE id=? FOR UPDATE',[$id])->fetch();
         if(!$o||!in_array($next,transitions($o['status']),true))throw new RuntimeException('Nedozvoljena promjena statusa.');
+        if($next==='shipped'&&deliveryType($o)==='pickup')throw new RuntimeException('Za lično preuzimanje potvrdite ličnu predaju kupcu.');
         if($next==='shipped'){if(!$o['planned_delivery_id'])throw new RuntimeException('Prvo sačuvajte način i uslove dostave u pripremi.');$courier=(string)$o['courier_name'];}
         if($next==='returned' && $o['payment_status']==='paid')throw new RuntimeException('Prvo evidentirajte povrat novca.');
         if($next==='cancelled' && $o['payment_status']==='paid')throw new RuntimeException('Prvo evidentirajte povrat novca.');

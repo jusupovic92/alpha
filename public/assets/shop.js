@@ -2,6 +2,7 @@ const delivery = document.getElementById('shipping_method');
 const total = document.getElementById('checkout-total');
 function updateTotal() {
   if (!delivery || !total) return;
+  const cod=document.querySelector('#payment_method option[value=cod]');if(cod)cod.textContent=delivery.selectedOptions[0]?.dataset.type==='pickup'?'Plaćanje pri ličnom preuzimanju':'Pouzećem';
   const amount = Number(total.dataset.subtotal) + Number(delivery.selectedOptions[0]?.dataset.cost || 0);
   total.textContent = new Intl.NumberFormat('bs-BA', {minimumFractionDigits:2,maximumFractionDigits:2}).format(amount / 100) + ' KM';
 }
