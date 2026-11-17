@@ -208,6 +208,34 @@ try{
  assert.equal((await request('admin.php?page=themes',admin,{action:'alpha_demo',csrf:'invalid'})).status,403);
  for(let repeat=0;repeat<2;repeat++)assert.equal((await request('admin.php?page=themes',admin,{action:'alpha_demo',csrf:csrf(themes.text)})).status,303);
  const demoSearch=await request('?q=ALPHA-DEMO-001',buyer);assert(demoSearch.text.includes('MAXXT ekscentrična polirka 15 mm'),'SKU search finds seeded product');assert(demoSearch.text.includes('Testna ponuda.'),'demo is clearly labeled');
+
+ const modePage=await request('admin.php?page=settings',admin);
+ assert.equal((await request('admin.php?page=settings',stockStaff,{action:'inventory_mode',inventory_enabled:'0',csrf:csrf(staffExitForm.text)})).status,403,'inventory option requires settings permission');
+ assert.equal((await request('admin.php?page=settings',admin,{action:'inventory_mode',inventory_enabled:'0',csrf:csrf(modePage.text)})).status,303);
+ assert.equal((await request('admin.php?page=inventory',admin)).status,403);
+ assert(!(await request('admin.php?page=products',admin)).text.includes('<th>Slobodno</th>'));
+ const freeSearch=await request('?q=ALPHA-DEMO-006',buyer);assert(!freeSearch.text.includes('stock-empty')&&!freeSearch.text.includes('Na lageru'),'public stock indicators hidden');
+ const zeroId=freeSearch.text.match(/name="id" value="(\d+)"/)[1];
+ const zeroDetail=await request('?page=product&id='+zeroId,buyer);assert(!zeroDetail.text.includes('Dostupno na lageru'));assert(!zeroDetail.text.includes('class="buy-button" disabled'));
+ await request('?page=add',buyer,{id:zeroId,qty:'3',csrf:csrf(zeroDetail.text)});
+ const freeCheckout=await request('?page=checkout',buyer);assert.equal(freeCheckout.status,200);
+ const freeToken=freeCheckout.text.match(/name="checkout_token" value="([a-f0-9]+)"/)[1];
+ assert.equal((await request('?page=checkout',buyer,{csrf:csrf(freeCheckout.text),checkout_token:freeToken,customer_name:'Bez lagera',email:'untracked@example.test',phone:'123',address:'Test',city:'Test',note:'Test',shipping_method:'1',payment_method:'cod'})).status,303);
+ assert((await request('?page=success',buyer)).text.includes('Hvala na narudžbi'));
+ assert.equal((await request('admin.php?page=settings',admin,{action:'inventory_mode',inventory_enabled:'1',csrf:csrf(modePage.text)})).status,303);
+ assert((await request('?page=product&id='+zeroId,buyer)).text.includes('class="buy-button" disabled'));
+ const mailPage=await request('admin.php?page=mail',admin);
+ assert.equal((await request('admin.php?page=mail',admin,{action:'mail_settings',mail_contact_enabled:'on',mail_transport:'smtp',mail_host:'127.0.0.1',mail_port:'9',mail_security:'ssl',mail_username:'',mail_from:'shop@example.test',mail_from_name:'Test',mail_recipients:'contacts@example.test',mail_base_url:'https://example.test',csrf:csrf(mailPage.text)})).status,303);
+ const contactPage=await request('?page=info&section=kontakt',buyer);assert(contactPage.text.includes('class="alpha-contact-form"'));
+ const contactToken=contactPage.text.match(/name="contact_token" value="([a-f0-9]+)"/)[1];
+ assert.equal((await request('?page=contact',buyer,{csrf:'invalid'})).status,403);
+ const contactPost={csrf:csrf(contactPage.text),contact_token:contactToken,contact_name:'Šefik Čolić',contact_email:'sef@example.test',contact_phone:'061123',contact_message:'Kontakt iz HTTP testa.',contact_consent:'1'};
+ assert.equal((await request('?page=contact',buyer,{...contactPost,contact_email:'bad'})).status,303);
+ assert((await request('?page=info&section=kontakt',buyer)).text.includes('ispravan e-mail'));
+ assert.equal((await request('?page=contact',buyer,contactPost)).status,303);
+ assert((await request('?page=info&section=kontakt&sent=1',buyer)).text.includes('Vaš upit je zaprimljen'));
+ assert((await request('admin.php?page=mail',admin)).text.includes('Kontakt upit'));
+ console.log('PASS: HTTP inventory toggle, zero-stock checkout and contact validation/queue');
  console.log('PASS: three Alpha layouts, persisted selection, SKU search and protected repeatable demo import');
  console.log('PASS: HTTP checkout, paid preparation to dispatched/paid, courier and tracking, order filters, typed exits, notes, reversals, CSV and separate warehouse/finance permissions; storefront regressions pass');
 }catch(e){console.error(logs);throw e;}finally{server.kill();if(existsSync(config))unlinkSync(config);}

@@ -34,6 +34,8 @@
 .storefront[data-store-theme=alpha-pro] .alpha-content-page,.storefront[data-store-theme=alpha-hybrid] .alpha-content-page{background:#fff;border-color:#d2e4d8;color:#3b5a46;box-shadow:0 5px 25px #173e2409}
 .storefront[data-store-theme=alpha-pro] .alpha-content-page h1,.storefront[data-store-theme=alpha-pro] .alpha-content-page h2,.storefront[data-store-theme=alpha-hybrid] .alpha-content-page h1,.storefront[data-store-theme=alpha-hybrid] .alpha-content-page h2{color:#163c28}
 .storefront[data-store-theme=alpha-pro] .alpha-article-intro,.storefront[data-store-theme=alpha-hybrid] .alpha-article-intro{color:#244f34}
+.storefront[data-store-theme=alpha-pro] .alpha-content-page .alpha-contact-links a,.storefront[data-store-theme=alpha-hybrid] .alpha-content-page .alpha-contact-links a{color:#197345!important}
+.storefront[data-store-theme=alpha-pro] .alpha-content-page .alpha-back,.storefront[data-store-theme=alpha-hybrid] .alpha-content-page .alpha-back{color:#26764d}
 .alpha-contact-form-wrap{margin-top:30px;padding-top:15px;border-top:1px solid #57776155}
 .alpha-contact-form label{display:block;margin:13px 0 6px;font-size:13px;line-height:1.6}
 .alpha-form-fields{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
