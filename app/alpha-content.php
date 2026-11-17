@@ -25,7 +25,7 @@ function alphaAdvice(): array {
 }
 
 function alphaContact(): void {
-    $email=setting('contact_email');$phone=setting('sender_phone');
+    $contact=businessContact();$email=$contact['email'];$phone=$contact['phone'];
     ?><div class="alpha-contact-links"><?php if(filter_var($email,FILTER_VALIDATE_EMAIL)):?><a href="mailto:<?=e($email)?>"><?=e($email)?></a><?php endif;?><?php if($phone!==''):?><a href="tel:<?=e(preg_replace('/[^+0-9]/','',$phone)??'')?>"><?=e($phone)?></a><?php endif;?><?php if($email===''&&$phone===''):?><p>Kontaktni podaci trenutno nisu uneseni.</p><?php endif;?></div><?php
 }
 
@@ -43,13 +43,12 @@ function alphaLowerHome(): void {
     <?php
 }
 
-function alphaFooter(): void { ?>
-    <footer class="store-footer alpha-rich-footer"><div class="alpha-footer-brand"><?php renderStoreBrand(true,true);?><p>Materijali i oprema za autoreparaturu, poliranje i detailing.</p></div><div><h3>Ponuda</h3><?php foreach(array_slice(alphaCategories(),0,6) as $category):?><a href="?category=<?=(int)$category['id']?>#ponuda"><?=e($category['name'])?></a><?php endforeach;?></div><div><h3>Informacije</h3><?php foreach(['dostava'=>'Dostava i plaćanje','reklamacije'=>'Reklamacije i povrat','uslovi'=>'Uslovi kupovine','privatnost'=>'Privatnost'] as $slug=>$title):?><a href="?page=info&amp;section=<?=e($slug)?>"><?=e($title)?></a><?php endforeach;?></div><div><h3>Kontakt</h3><?php alphaContact();?><a class="alpha-footer-contact" href="?page=info&amp;section=kontakt">Kontakt i upiti →</a></div><div class="footer-bottom"><span>© <?=date('Y')?> <?=e(setting('shop_name'))?></span><a href="?page=info&amp;section=privatnost">Privatnost</a><a href="admin.php">Administracija ↗</a></div></footer>
-<?php }
+function alphaFooter(): void { renderBusinessFooter(); }
 
 function alphaContentPage(string $action): void {
     $articles=alphaAdvice();$slug=(string)($_GET['article']??'');
     $section=(string)($_GET['section']??'kontakt');
+    if($action==='info'&&$section==='kontakt'){renderRichContactPage();return;}
     $titles=['kontakt'=>'Kontakt i upiti','dostava'=>'Dostava i plaćanje','reklamacije'=>'Reklamacije i povrat','uslovi'=>'Uslovi kupovine','privatnost'=>'Privatnost'];
     if(($action==='advice'&&!isset($articles[$slug]))||($action==='info'&&!isset($titles[$section]))){http_response_code(404);echo '<h1>Sadržaj nije pronađen.</h1>';return;}
     ?><article class="alpha-content-page"><a class="alpha-back" href="./">← Povratak na naslovnicu</a><?php if($action==='advice'):$article=$articles[$slug];?><p class="alpha-section-kicker">SAVJETI IZ RADIONICE</p><h1><?=e($article[0])?></h1><img class="alpha-article-image" src="assets/alpha/<?=e($article[1])?>" alt="" width="1200" height="600"><p class="alpha-article-intro"><?=e($article[2])?></p><?php foreach($article[3] as $paragraph):?><p><?=e($paragraph)?></p><?php endforeach;?><a class="btn" href="?all=1#ponuda">Pregledaj proizvode →</a><?php else:?><p class="alpha-section-kicker">INFORMACIJE ZA KUPCE</p><h1><?=e($titles[$section])?></h1>

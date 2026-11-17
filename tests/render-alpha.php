@@ -14,6 +14,7 @@ try{
     $db->exec("INSERT INTO settings(setting_key,setting_value) VALUES('inventory_enabled','0'),('mail_contact_enabled','1') ON DUPLICATE KEY UPDATE setting_value=VALUES(setting_value)");
     $db->exec("UPDATE settings SET setting_value='shop@example.test' WHERE setting_key='mail_from'");
     $db->exec("UPDATE settings SET setting_value='contact@example.test' WHERE setting_key='mail_recipients'");
+    $db->exec("UPDATE settings SET setting_value='127.0.0.1' WHERE setting_key='mail_host'");
     foreach(['alpha-pro','alpha-premium','alpha-hybrid'] as $theme){
         $update=$db->prepare("UPDATE settings SET setting_value=? WHERE setting_key='store_theme'");$update->execute([$theme]);
         $process=proc_open([PHP_BINARY,'-r','$_SERVER["REQUEST_METHOD"]="GET"; $_SERVER["HTTPS"]="on"; require "public/index.php";'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$root);

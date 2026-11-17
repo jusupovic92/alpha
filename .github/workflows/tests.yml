@@ -43,3 +43,5 @@ jobs:
       - run: php tests/options-contact.php
 
       - run: php tests/brands-slider.php
+
+      - run: php tests/contact-page.php

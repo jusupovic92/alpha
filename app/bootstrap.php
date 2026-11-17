@@ -18,7 +18,7 @@ function csrf():string { return '<input type="hidden" name="csrf" value="'.e($_S
 function checkCsrf():void { if (!hash_equals($_SESSION['csrf'],(string)($_POST['csrf']??''))) {http_response_code(403);exit('Neispravan zahtjev.');} }
 function redirect(string $to):never {header('Location: '.$to, true,303);exit;}
 header('X-Frame-Options: DENY');
-header("Content-Security-Policy: default-src 'self'; img-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+header("Content-Security-Policy: default-src 'self'; img-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self'; frame-src https://www.google.com https://maps.google.com https://www.google.ba https://maps.google.ba; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
 date_default_timezone_set('Europe/Sarajevo');
 require_once __DIR__.'/services.php';
 require_once __DIR__.'/catalog.php';
