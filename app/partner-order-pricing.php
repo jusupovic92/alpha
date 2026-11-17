@@ -12,7 +12,7 @@ function partnerRepricedState(array $item,array $input):array {
     $extra=partnerRate('discount',$input['extra_discount_rate']??null);
     if($mode==='fixed'){$base=cents((string)$item['base_price']);$rate=0;$before=orderPriceMoney($input['fixed_price']??null);}
     else{$base=orderPriceMoney($input['base_price']??null);$rate=partnerRate($mode,$input['rate']??null);$before=intdiv($base*($mode==='discount'?10000-$rate:10000+$rate)+5000,10000);}
-    $unit=intdiv($before*(10000-$extra)+5000,10000);if($before>999999999999||$unit>999999999999)throw new RuntimeException('Prevelika obračunata cijena.');
+    $unit=intdiv($before*(10000-$extra)+5000,10000);if($before>99999999999||$unit>99999999999)throw new RuntimeException('Prevelika obračunata cijena.');
     return ['base_price'=>decimal($base),'unit_price'=>decimal($unit),'pricing_mode'=>$mode,'pricing_rate'=>decimal($rate),'price_before_extra'=>decimal($before),'extra_discount_rate'=>decimal($extra)];
 }
 function revisePartnerOrderPrices(int $id,array $lines,string $note,int $version,string $token):void {
@@ -31,7 +31,7 @@ function revisePartnerOrderPrices(int $id,array $lines,string $note,int $version
             $changes[]=['source_item'=>(int)$itemId,'result_item'=>$result,'sku'=>$item['sku'],'product_name'=>$item['product_name'],'quantity'=>$open,'before'=>$before,'after'=>$after];
         }
         if(!$changes)throw new RuntimeException('Nema izmjena cijena za spremanje.');
-        $total=cents((string)$o['shipping_cost']);$base=0;foreach(partnerOrderItems($id) as $item){$total+=(int)$item['quantity']*cents((string)$item['unit_price']);$base+=(int)$item['quantity']*cents((string)$item['base_price']);}if($total>999999999999||$base>999999999999)throw new RuntimeException('Prevelik iznos narudžbe.');
+        $total=cents((string)$o['shipping_cost']);$base=0;foreach(partnerOrderItems($id) as $item){$total+=(int)$item['quantity']*cents((string)$item['unit_price']);$base+=(int)$item['quantity']*cents((string)$item['base_price']);}if($total>99999999999||$base>99999999999)throw new RuntimeException('Prevelik iznos narudžbe.');
         query('UPDATE partner_orders SET total=?,base_total=?,version=version+1,updated_at=NOW() WHERE id=?',[decimal($total),decimal($base),$id]);
         query('INSERT INTO partner_order_events(order_id,kind,note,actor_id,event_token,pricing_details) VALUES(?,?,?,?,?,?)',[$id,'pricing',$note,currentUser()['id'],$token,json_encode($changes,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE)]);$event=(int)$db->lastInsertId();partnerQueueMail($id,'Izmjena cijena narudžbe',$event);audit('partner.order_priced',$id,'Promjena #'.$event.' / '.$note);$db->commit();partnerScheduleMail();
     }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
