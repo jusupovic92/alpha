@@ -59,3 +59,5 @@ jobs:
       - run: php tests/pickup.php
 
       - run: php tests/render-pickup.php
+
+      - run: php tests/order-prices.php

@@ -88,5 +88,9 @@ try{
         foreach(explode(';',file_get_contents(dirname(__DIR__).'/database/migrations/015_personal_pickup.sql')) as $sql)if(trim($sql)!=='')$db->exec($sql);
         echo "Migracija 015 Lično preuzimanje je primijenjena.\n";
     }
+    if(!$db->query("SELECT COUNT(*) FROM schema_migrations WHERE version='016_order_prices'")->fetchColumn()) {
+        foreach(explode(';',file_get_contents(dirname(__DIR__).'/database/migrations/016_order_prices.sql')) as $sql)if(trim($sql)!=='')$db->exec($sql);
+        echo "Migracija 016 Cijene poslovnih narudžbi je primijenjena.\n";
+    }
 }catch(Throwable $e){fwrite(STDERR,$e->getMessage()."\nMigracija može biti djelimično primijenjena jer MySQL DDL nije transakcijski. Vratite backup prije novog pokušaja.\n");exit(1);}
 finally{$db->query("SELECT RELEASE_LOCK('webshop_schema_upgrade')");}

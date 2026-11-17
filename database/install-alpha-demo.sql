@@ -293,3 +293,40 @@ INSERT INTO shipping_methods(name,cost,courier_name,terms,payer,active,delivery_
  SELECT 'Lično preuzimanje',0,'','Preuzimanje u prodavnici po dogovoru. Kontaktirat ćemo vas kada narudžba bude spremna.','customer',1,'pickup'
  WHERE NOT EXISTS(SELECT 1 FROM shipping_methods WHERE delivery_type='pickup') AND NOT EXISTS(SELECT 1 FROM schema_migrations WHERE version='015_personal_pickup');
 INSERT IGNORE INTO schema_migrations(version) VALUES('015_personal_pickup');
+
+-- Alpha 2.0. Apply to the existing 1.9 database after backup. Repeatable.
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_orders' AND COLUMN_NAME='initial_total')=0,'ALTER TABLE partner_orders ADD initial_total DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_events' AND COLUMN_NAME='pricing_details')=0,'ALTER TABLE partner_order_events ADD pricing_details MEDIUMTEXT NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_base_price')=0,'ALTER TABLE partner_order_items ADD original_base_price DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_unit_price')=0,'ALTER TABLE partner_order_items ADD original_unit_price DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_pricing_mode')=0,'ALTER TABLE partner_order_items ADD original_pricing_mode VARCHAR(20) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_pricing_rate')=0,'ALTER TABLE partner_order_items ADD original_pricing_rate DECIMAL(7,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='price_before_extra')=0,'ALTER TABLE partner_order_items ADD price_before_extra DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='extra_discount_rate')=0,'ALTER TABLE partner_order_items ADD extra_discount_rate DECIMAL(5,2) NOT NULL DEFAULT 0','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+UPDATE partner_orders SET initial_total=total WHERE initial_total IS NULL;
+UPDATE partner_order_items SET original_base_price=COALESCE(original_base_price,base_price),original_unit_price=COALESCE(original_unit_price,unit_price),original_pricing_mode=COALESCE(original_pricing_mode,pricing_mode),original_pricing_rate=COALESCE(original_pricing_rate,pricing_rate),price_before_extra=COALESCE(price_before_extra,unit_price);
+INSERT IGNORE INTO schema_migrations(version) VALUES('016_order_prices');
