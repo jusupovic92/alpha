@@ -53,3 +53,5 @@ jobs:
       - run: php tests/render-partners.php
 
       - run: php tests/usernames.php
+
+      - run: php tests/partner-password.php
