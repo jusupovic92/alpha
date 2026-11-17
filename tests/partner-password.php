@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-session_start();$base=getenv('TEST_DB_NAME')?:'webshop_test';if(!preg_match('/^webshop_test(?:_[a-z0-9]+)?$/D',$base))exit('Only disposable databases');
+session_start();ob_start();$base=getenv('TEST_DB_NAME')?:'webshop_test';if(!preg_match('/^webshop_test(?:_[a-z0-9]+)?$/D',$base))exit('Only disposable databases');
 $db=new PDO('mysql:host='.(getenv('TEST_DB_HOST')?:'127.0.0.1').';port='.(getenv('TEST_DB_PORT')?:'33317').';dbname='.$base.'_partners;charset=utf8mb4',getenv('TEST_DB_USER')?:'root',getenv('TEST_DB_PASSWORD')?:'local_test_only',[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC]);require dirname(__DIR__).'/app/services.php';$_SESSION=[];
 function check(bool $ok,string $label):void{if(!$ok)throw new RuntimeException($label);echo "PASS: $label\n";}
 function rejected(callable $fn,string $message):void{$error=null;try{$fn();}catch(RuntimeException $e){$error=$e;}check($error!==null&&str_contains($error->getMessage(),$message),'reject: '.$message);}
@@ -11,3 +11,4 @@ query('UPDATE business_partners SET must_change_password=1 WHERE id=2');$p=query
 query('UPDATE business_partners SET must_change_password=1 WHERE id=2');$p=query('SELECT * FROM business_partners WHERE id=2')->fetch();$_SESSION=['partner_id'=>2,'partner_version'=>(int)$p['auth_version'],'partner_verified_at'=>time()-601];check(!partnerInitialPasswordVerified($p),'expired recent login requires current password');rejected(fn()=>changePartnerPassword($p,'','Another-Password-12345'),'Trenutna lozinka');$_SESSION['partner_verified_at']=time();$_SESSION['partner_id']=1;check(!partnerInitialPasswordVerified($p),'other partner session cannot authorize password change');
 check(partnerPasswordInput(['password'=>'  exact-password  '],'password')==='  exact-password  ','password parser preserves entered bytes');
 echo "PASS: correct old password, typed versions, initial-login password change and stale-session safeguards.\n";
+ob_end_flush();
