@@ -195,14 +195,14 @@ try{
  // Alpha theme persistence, all customer surfaces and protected idempotent demo import.
  for(const theme of ['alpha-pro','alpha-premium','alpha-hybrid']){
    assert.equal((await request('admin.php?page=themes',admin,{action:'store_theme',theme,csrf:csrf(themes.text)})).status,303);
-   const home=await request('',buyer);assert(home.text.includes('class="alpha-hero '),'Alpha hero rendered');
+   const home=await request('',buyer);assert(home.text.includes('class="alpha-company-carousel'),'Alpha hero rendered');
    for(const url of ['','?all=1','?page=cart','?page=checkout','?page=product&id=1'])assert((await request(url,buyer)).text.includes('data-store-theme="'+theme+'"'));
-   assert(!(await request('?all=1',buyer)).text.includes('class="alpha-hero '),'catalog has no promotional hero');
+   assert(!(await request('?all=1',buyer)).text.includes('class="alpha-company-carousel'),'catalog has no promotional hero');
    for(const article of ['odabir-polirke','priprema-povrsine','brusni-disk']){const r=await request('?page=advice&article='+article,buyer);assert.equal(r.status,200);assert(r.text.includes('alpha-content-page')&&r.text.includes('alpha-article-intro'));}
    for(const section of ['kontakt','dostava','reklamacije','uslovi','privatnost']){const r=await request('?page=info&section='+section,buyer);assert.equal(r.status,200);assert(r.text.includes('alpha-content-page'));}
    assert.equal((await request('?page=advice&article=invalid',buyer)).status,404);
    assert.equal((await request('?page=info&section=invalid',buyer)).status,404);
-   if(theme==='alpha-premium'){assert(home.text.includes('alpha-value-section')&&home.text.includes('alpha-advice-section')&&home.text.includes('alpha-rich-footer'));assert(!home.text.includes('120+'));}
+   if(theme==='alpha-premium'){assert(home.text.includes('alpha-value-section')&&home.text.includes('alpha-advice-section')&&home.text.includes('alpha-rich-footer'));assert(home.text.includes('120+'),'company metrics from supplied reference');}
 
  }
  assert.equal((await request('admin.php?page=themes',stockStaff,{action:'alpha_demo',csrf:csrf(staffExitForm.text)})).status,403);
@@ -218,7 +218,7 @@ try{
  assert.equal((await request('admin.php?page=products',admin,{action:'hero_publish',id:'1',csrf:csrf(sliderPage.text)})).status,303);
  const sliderHome=await request('',buyer);assert.equal((sliderHome.text.match(/class="alpha-product-slide"/g)||[]).length,2);assert(sliderHome.text.includes('data-interval="2000"')&&sliderHome.text.includes('data-effect="slide"'));
  const firstSlide=sliderHome.text.split('class="alpha-product-slide"')[1].split('</article>')[0];assert(firstSlide.includes('?page=product&amp;id=1')||firstSlide.includes('?page=product&id=1'),'old article republished into first slot');
- const brandCatalog=await request('?brand=1',buyer);assert.equal(brandCatalog.status,200);assert(!brandCatalog.text.includes('class="alpha-hero '));assert(brandCatalog.text.includes('MAXXT'));
+ const brandCatalog=await request('?brand=1',buyer);assert.equal(brandCatalog.status,200);assert(!brandCatalog.text.includes('class="alpha-company-carousel'));assert(brandCatalog.text.includes('MAXXT'));
  assert.equal((await request('admin.php?page=brands',admin,{action:'brand',id:'1',name:'MAXXT',slug:'maxxt',logo_url:'assets/alpha/brand-maxxt.png',website:'https://maxxttools.com/',logo_dark:'1',sort_order:'10',active:'on',show_on_home:'on',csrf:csrf(brandPage.text)})).status,303);
  assert.equal((await request('admin.php?page=brands',admin,{action:'brand',id:'1',name:'MAXXT',slug:'maxxt',logo_url:'javascript:alert(1)',website:'https://maxxttools.com/',logo_dark:'1',sort_order:'10',csrf:csrf(brandPage.text)})).status,200,'invalid logo URL rejected');
  console.log('PASS: brand management, filtering, publication action and slider options through HTTP');
