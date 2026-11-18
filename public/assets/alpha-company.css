@@ -68,6 +68,9 @@
 .storefront[data-store-theme^=alpha-] .alpha-contact-banner .btn.secondary{color:#205b38;background:#fff;border-color:#7ea88e}
 .storefront[data-store-theme^=alpha-] :is(.panel,.description-panel,.alpha-content-page){background:#fff;color:#234832;border-color:#dce6df}
 .storefront[data-store-theme^=alpha-] :is(.product-info h1,.product-info h2,.alpha-content-page h1,.alpha-content-page h2){color:#173b28}
+.storefront[data-store-theme^=alpha-] .product-info .price{color:#a84600!important}
+.storefront[data-store-theme^=alpha-] .alpha-content-page .alpha-article-intro{color:#345b42}
+.storefront[data-store-theme^=alpha-] .alpha-show-all .btn{background:#fff;border:1px solid #89b097;color:#205b38}
 .storefront[data-store-theme^=alpha-] :is(.catalog-filters,.alpha-filter-box){background:#f2f6f3;color:#2b5039}
 .storefront[data-store-theme^=alpha-] :is(.long-description,.detail-intro,.catalog-filters label){color:#496b56}
 .storefront[data-store-theme^=alpha-] :is(.alpha-contact-card,.alpha-contact-form-panel,.alpha-contact-business){background:#fff;color:#234832;border-color:#d5e4d9}
