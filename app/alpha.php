@@ -18,20 +18,39 @@ function alphaCategoryLink(array $categories, string $slug): string {
 
 function alphaHero(): void {
     $categories=alphaCategories();
-    $premium=storeTheme()==='alpha-premium';
-    $pro=storeTheme()==='alpha-pro';
-    $slides=heroProducts();
-    $spotlight=$slides[0]??null;
-    $heroImage=$spotlight ? imageSource($spotlight['hero_banner_url'] ?: $spotlight['image_url']) : 'assets/alpha/workshop.svg';
+    $slides=[];
+    $defaults=[
+        ['title'=>'Pronađite savršenu nijansu','text'=>'Sve za profesionalno lakiranje i vrhunsku završnu obradu.','button'=>'Pogledaj ponudu'],
+        ['title'=>'Profesionalno lakiranje','text'=>'Kvalitetni materijali i oprema za radionice koje traže pouzdan rezultat.','button'=>'Istraži proizvode'],
+        ['title'=>'Od pripreme do savršenog finiša','text'=>'Pronađite sve što vam treba za svaki korak autoreparature.','button'=>'Otkrij proizvode'],
+    ];
+    for($i=1;$i<=3;$i++){
+        $slides[]=[
+            'title'=>setting('hero_slide_'.$i.'_title',$defaults[$i-1]['title']),
+            'text'=>setting('hero_slide_'.$i.'_text',$defaults[$i-1]['text']),
+            'button'=>setting('hero_slide_'.$i.'_button',$defaults[$i-1]['button']),
+            'url'=>setting('hero_slide_'.$i.'_url','?all=1#ponuda'),
+            'image'=>setting('hero_slide_'.$i.'_image',''),
+        ];
+    }
     ?>
-    <section class="alpha-hero <?=!empty($spotlight['hero_banner_url'])?'alpha-hero-custom':''?>" aria-labelledby="alpha-title">
-      <div class="alpha-hero-copy"><p class="alpha-kicker">ALPHA REFINISH / PROFESIONALNA AUTOREPARATURA</p>
-        <h1 id="alpha-title"><?=$pro?'Sve za vašu radionicu.':($premium?'Perfekcija u svakom sloju.':'Od pripreme do savršenog sjaja.')?></h1>
-        <p>Materijali i oprema za pripremu, lakiranje, poliranje i njegu vozila.</p>
-        <div class="alpha-actions"><a class="btn" href="<?=e(alphaCategoryLink($categories,'boje-i-lakovi'))?>">Autoreparatura <span aria-hidden="true">→</span></a><a class="btn secondary" href="<?=e(alphaCategoryLink($categories,'detailing'))?>">Detailing <span aria-hidden="true">→</span></a></div>
-        <a class="alpha-all" href="?all=1#ponuda">Pregledajte cijelu ponudu →</a>
+    <section class="alpha-showcase" data-carousel aria-label="Promotivni slajder">
+      <?php foreach($slides as $i=>$slide):$image=$slide['image']!==''?$slide['image']:'assets/alpha/workshop.svg';?>
+      <article class="alpha-showcase-slide" data-slide <?=$i?'hidden':''?> aria-label="<?=($i+1).' od '.count($slides)?>">
+        <div class="alpha-showcase-copy">
+          <p class="alpha-kicker">ALPHA REFINISH / PROFESIONALNA AUTOREPARATURA</p>
+          <h1><?=e($slide['title'])?></h1>
+          <p><?=e($slide['text'])?></p>
+          <a class="btn" href="<?=e($slide['url'])?>"><?=e($slide['button'])?> <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="alpha-showcase-image"><img src="<?=e(imageSource($image))?>" alt="<?=e($slide['title'])?>" <?=$i?'loading="lazy"':'fetchpriority="high"'?>></div>
+      </article>
+      <?php endforeach;?>
+      <div class="carousel-controls alpha-showcase-controls" data-carousel-controls hidden>
+        <div class="carousel-dots"><?php foreach($slides as $i=>$slide):?><button class="carousel-dot" data-slide-index="<?=$i?>" aria-label="<?=e('Prikaži slajd '.($i+1))?>" aria-pressed="<?=$i?'false':'true'?>"><?=str_pad((string)($i+1),2,'0',STR_PAD_LEFT)?></button><?php endforeach;?></div>
+        <div><button class="icon-button" data-carousel-pause aria-label="Zaustavi automatsku izmjenu">Ⅱ</button><button class="icon-button" data-carousel-prev aria-label="Prethodni slajd">←</button><button class="icon-button" data-carousel-next aria-label="Sljedeći slajd">→</button></div>
+        <span class="sr-only" data-carousel-status aria-live="polite"></span>
       </div>
-      <div class="alpha-hero-image"><img src="<?=e($heroImage)?>" alt="<?=e($spotlight?$spotlight['name']:'Priprema vozila u radionici – ilustracija')?>" fetchpriority="high"><?php if($spotlight):?><a class="alpha-spotlight" href="<?=e(productLink((int)$spotlight['id']))?>"><span>Izdvojeni artikal</span><strong><?=e($spotlight['name'])?></strong><span><?=money((float)$spotlight['price'])?> · Pogledaj →</span></a><?php endif;?></div>
     </section>
     <?php if($categories):?><section class="alpha-categories" aria-label="Kategorije proizvoda"><?php foreach($categories as $category):?><a href="?category=<?=(int)$category['id']?>#ponuda"><img src="<?=e(imageSource($category['image_url']))?>" alt="" loading="lazy"><strong><?=e($category['name'])?></strong><span aria-hidden="true">→</span></a><?php endforeach;?></section><?php endif;?>
     <div class="alpha-benefits"><span>Od pripreme do završne obrade</span><span>Materijali i alati na jednom mjestu</span><span>Jasna dostupnost artikala</span></div>
