@@ -8,6 +8,6 @@ return [
     // cPanel Cron still runs bin/send-notifications.php once per minute.
     'notify_email'=>'',
     'mail_from'=>'',
-    'base_url'=>'https://prodaja.sdpkakanj.ba',
+    'base_url'=>'https://shop2.sdpkakanj.ba',
 ];
 

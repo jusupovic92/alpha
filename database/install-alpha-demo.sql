@@ -139,3 +139,194 @@ INSERT INTO stock_movements(product_id,quantity,kind,note,available_after,reserv
 INSERT INTO products(category_id,sku,name,description,price,stock,image_url,active,featured,hero_selected) SELECT (SELECT id FROM categories WHERE slug='detailing'),'ALPHA-DEMO-012','Sredstvo za pranje vozila – testni artikal','TESTNI ARTIKAL — probni podaci za provjeru izgleda i naručivanja. Cijena i stanje nisu potvrđena prodajna ponuda. Primjer artikla prema kategorijama Alpha Refinish ponude. Slika je ilustracija, a ne fotografija stvarnog proizvoda.',19,21,'assets/alpha/bottle.svg',1,1,0 WHERE NOT EXISTS(SELECT 1 FROM products WHERE sku='ALPHA-DEMO-012');
 INSERT INTO stock_movements(product_id,quantity,kind,note,available_after,reserved_after,unit_cost) SELECT id,stock,'adjustment','Početno testno stanje Alpha demo',stock,reserved,0 FROM products WHERE sku='ALPHA-DEMO-012' AND NOT EXISTS(SELECT 1 FROM stock_movements m WHERE m.product_id=products.id);
 INSERT INTO settings(setting_key,setting_value) VALUES('alpha_demo_notice','1') ON DUPLICATE KEY UPDATE setting_value='1';
+
+-- Update bundled demo photographs only. Preserve custom photos, all prices, stock and orders.
+SET NAMES utf8mb4;
+UPDATE products SET image_url='assets/alpha/maxxt-polisher.png' WHERE sku='ALPHA-DEMO-001' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-rotary.png' WHERE sku='ALPHA-DEMO-002' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-sander.png' WHERE sku='ALPHA-DEMO-003' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-sander.png' WHERE sku='ALPHA-DEMO-004' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-sander.png' WHERE sku='ALPHA-DEMO-005' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/maxxt-vacuum.png' WHERE sku='ALPHA-DEMO-006' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/clearcoat.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN 'Mipa C UV lak 1 kg — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-007' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/cleaner.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN 'APC Typhoon 0,5 L — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-008' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/pads.jpg', category_id=(SELECT id FROM categories WHERE slug='poliranje' LIMIT 1), name=CASE WHEN name LIKE '%testni artikal%' THEN 'ChemicalWorkz Pad Box 75 mm, 6/1 — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-009' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/polish.webp', name=CASE WHEN name LIKE '%testni artikal%' THEN 'P&S Therapy Final Polish 236 ml — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-010' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/microfiber.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN 'EWOCAR mikrofiber krpa 400 GSM — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-011' AND image_url LIKE 'assets/alpha/%.svg';
+UPDATE products SET image_url='assets/alpha/shampoo.jpg', name=CASE WHEN name LIKE '%testni artikal%' THEN '3D Wash N Wax 3,8 L — testna ponuda' ELSE name END WHERE sku='ALPHA-DEMO-012' AND image_url LIKE 'assets/alpha/%.svg';
+INSERT IGNORE INTO schema_migrations(version) VALUES ('011_alpha_photos');
+
+-- Apply to an existing Alpha database after making a backup. Safe to repeat.
+-- Does not modify prices, inventory, orders or uploaded product photos.
+CREATE TABLE IF NOT EXISTS brands (
+ id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+ name VARCHAR(150) NOT NULL,
+ slug VARCHAR(170) NOT NULL UNIQUE,
+ logo_url VARCHAR(500) NOT NULL DEFAULT '',
+ website VARCHAR(500) NOT NULL DEFAULT '',
+ logo_dark TINYINT(1) NOT NULL DEFAULT 0,
+ active TINYINT(1) NOT NULL DEFAULT 1,
+ show_on_home TINYINT(1) NOT NULL DEFAULT 1,
+ sort_order INT NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='products' AND COLUMN_NAME='brand_id')=0,'ALTER TABLE products ADD brand_id INT UNSIGNED NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='products' AND COLUMN_NAME='hero_selected_at')=0,'ALTER TABLE products ADD hero_selected_at DATETIME(6) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='products' AND INDEX_NAME='idx_products_brand')=0,'ALTER TABLE products ADD INDEX idx_products_brand(brand_id)','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA=DATABASE() AND TABLE_NAME='products' AND CONSTRAINT_NAME='fk_products_brand')=0,'ALTER TABLE products ADD CONSTRAINT fk_products_brand FOREIGN KEY(brand_id) REFERENCES brands(id) ON DELETE SET NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+INSERT INTO brands(name,slug,logo_url,website,sort_order) VALUES
+('MAXXT','maxxt','assets/alpha/brand-maxxt.png','https://maxxttools.com/',10),
+('Mipa','mipa','assets/alpha/brand-mipa.jpg','https://www.mipa-paints.com/',20),
+('ChemicalWorkz','chemicalworkz','assets/alpha/brand-chemicalworkz.png','https://www.chemicalworkz.de/',30),
+('P&S','ps','assets/alpha/brand-ps.png','https://psdetailproducts.com/',40),
+('EWOCAR','ewocar','assets/alpha/brand-ewocar.png','https://ewocar.com/',50),
+('3D','3d','assets/alpha/brand-3d.png','https://3dproducts.com/',60)
+ON DUPLICATE KEY UPDATE slug=VALUES(slug);
+UPDATE brands SET logo_dark=1 WHERE slug IN ('maxxt','ewocar') AND NOT EXISTS(SELECT 1 FROM schema_migrations WHERE version='012_brands_slider');
+UPDATE products p JOIN brands b ON (p.name LIKE CONCAT(b.name,' %') OR p.name=b.name) SET p.brand_id=b.id WHERE p.brand_id IS NULL AND NOT EXISTS(SELECT 1 FROM schema_migrations WHERE version='012_brands_slider');
+UPDATE products SET hero_selected_at=created_at WHERE hero_selected=1 AND hero_selected_at IS NULL AND NOT EXISTS(SELECT 1 FROM schema_migrations WHERE version='012_brands_slider');
+INSERT IGNORE INTO settings(setting_key,setting_value) VALUES ('slider_count','3'),('slider_interval','6'),('slider_effect','fade'),('slider_duration','500'),('slider_autoplay','1'),('slider_hover_pause','1');
+INSERT IGNORE INTO schema_migrations(version) VALUES ('012_brands_slider');
+
+-- Alpha 1.7. Import into the existing 1.6 database after backup. Repeatable.
+CREATE TABLE IF NOT EXISTS business_partners (
+ id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+ company VARCHAR(180) NOT NULL, contact_name VARCHAR(180) NOT NULL,
+ email VARCHAR(254) NOT NULL UNIQUE, phone VARCHAR(60) NOT NULL,
+ address VARCHAR(255) NOT NULL, city VARCHAR(150) NOT NULL, tax_id VARCHAR(80) NOT NULL DEFAULT '',
+ password_hash VARCHAR(255) NOT NULL, active TINYINT(1) NOT NULL DEFAULT 1,
+ auth_version INT UNSIGNED NOT NULL DEFAULT 1, must_change_password TINYINT(1) NOT NULL DEFAULT 1,
+ pricing_mode VARCHAR(20) NOT NULL DEFAULT 'discount', pricing_rate DECIMAL(7,2) NOT NULL DEFAULT 0,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS partner_prices (
+ partner_id INT UNSIGNED NOT NULL, product_id INT UNSIGNED NOT NULL,
+ pricing_mode VARCHAR(20) NOT NULL, pricing_rate DECIMAL(7,2) NOT NULL,
+ PRIMARY KEY(partner_id,product_id),
+ FOREIGN KEY(partner_id) REFERENCES business_partners(id),
+ FOREIGN KEY(product_id) REFERENCES products(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS partner_orders (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, partner_id INT UNSIGNED NOT NULL,
+ company VARCHAR(180) NOT NULL, contact_name VARCHAR(180) NOT NULL, email VARCHAR(254) NOT NULL,
+ phone VARCHAR(60) NOT NULL, address VARCHAR(255) NOT NULL, city VARCHAR(150) NOT NULL,
+ note VARCHAR(2000) NOT NULL DEFAULT '', status VARCHAR(30) NOT NULL DEFAULT 'new',
+ total DECIMAL(12,2) NOT NULL, base_total DECIMAL(12,2) NOT NULL,
+ shipping_method VARCHAR(150) NOT NULL, shipping_cost DECIMAL(12,2) NOT NULL DEFAULT 0,
+ shipping_terms VARCHAR(1000) NOT NULL DEFAULT '', shipping_payer VARCHAR(20) NOT NULL DEFAULT 'customer',
+ inventory_tracked TINYINT(1) NOT NULL, version INT UNSIGNED NOT NULL DEFAULT 1,
+ checkout_token CHAR(64) NOT NULL UNIQUE,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP NULL,
+ FOREIGN KEY(partner_id) REFERENCES business_partners(id), INDEX(partner_id,created_at), INDEX(status,created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS partner_order_items (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, order_id BIGINT UNSIGNED NOT NULL,
+ product_id INT UNSIGNED NULL, sku VARCHAR(80) NOT NULL, product_name VARCHAR(200) NOT NULL,
+ quantity INT UNSIGNED NOT NULL, fulfilled_qty INT UNSIGNED NOT NULL DEFAULT 0,
+ cancelled_qty INT UNSIGNED NOT NULL DEFAULT 0, returned_qty INT UNSIGNED NOT NULL DEFAULT 0,
+ base_price DECIMAL(12,2) NOT NULL, unit_price DECIMAL(12,2) NOT NULL,
+ pricing_mode VARCHAR(20) NOT NULL, pricing_rate DECIMAL(7,2) NOT NULL,
+ FOREIGN KEY(order_id) REFERENCES partner_orders(id), FOREIGN KEY(product_id) REFERENCES products(id) ON DELETE SET NULL,
+ INDEX(order_id,product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS partner_order_events (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, order_id BIGINT UNSIGNED NOT NULL,
+ kind VARCHAR(20) NOT NULL, note VARCHAR(1000) NOT NULL, courier VARCHAR(150) NOT NULL DEFAULT '',
+ tracking_number VARCHAR(150) NOT NULL DEFAULT '', actor_id INT UNSIGNED NULL,
+ event_token CHAR(64) NOT NULL UNIQUE, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY(order_id) REFERENCES partner_orders(id), FOREIGN KEY(actor_id) REFERENCES users(id), INDEX(order_id,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS partner_event_items (
+ event_id BIGINT UNSIGNED NOT NULL, item_id BIGINT UNSIGNED NOT NULL, quantity INT UNSIGNED NOT NULL,
+ PRIMARY KEY(event_id,item_id), FOREIGN KEY(event_id) REFERENCES partner_order_events(id),
+ FOREIGN KEY(item_id) REFERENCES partner_order_items(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+INSERT IGNORE INTO settings(setting_key,setting_value) VALUES ('mail_partner_enabled','1'),('partner_recipients','');
+INSERT IGNORE INTO schema_migrations(version) VALUES ('013_business_partners');
+
+-- Alpha 1.8. Apply to the existing 1.7 database after backup. Repeatable.
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='username')=0,'ALTER TABLE users ADD username VARCHAR(64) CHARACTER SET ascii COLLATE ascii_general_ci NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='business_partners' AND COLUMN_NAME='username')=0,'ALTER TABLE business_partners ADD username VARCHAR(64) CHARACTER SET ascii COLLATE ascii_general_ci NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+UPDATE users SET username=CONCAT('admin',id) WHERE username IS NULL OR username='';
+UPDATE business_partners SET username=CONCAT('saradnik',id) WHERE username IS NULL OR username='';
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='users' AND INDEX_NAME='uq_users_username')=0,'ALTER TABLE users ADD UNIQUE INDEX uq_users_username(username)','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='business_partners' AND INDEX_NAME='uq_partners_username')=0,'ALTER TABLE business_partners ADD UNIQUE INDEX uq_partners_username(username)','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+INSERT IGNORE INTO schema_migrations(version) VALUES ('014_usernames');
+
+-- Alpha 1.9. Existing 1.8.x database only, after backup. Repeatable.
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='shipping_methods' AND COLUMN_NAME='delivery_type')=0,'ALTER TABLE shipping_methods ADD delivery_type VARCHAR(20) NOT NULL DEFAULT ''courier''','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='orders' AND COLUMN_NAME='shipping_type')=0,'ALTER TABLE orders ADD shipping_type VARCHAR(20) NOT NULL DEFAULT ''courier''','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_orders' AND COLUMN_NAME='shipping_type')=0,'ALTER TABLE partner_orders ADD shipping_type VARCHAR(20) NOT NULL DEFAULT ''courier''','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+INSERT INTO shipping_methods(name,cost,courier_name,terms,payer,active,delivery_type)
+ SELECT 'Lično preuzimanje',0,'','Preuzimanje u prodavnici po dogovoru. Kontaktirat ćemo vas kada narudžba bude spremna.','customer',1,'pickup'
+ WHERE NOT EXISTS(SELECT 1 FROM shipping_methods WHERE delivery_type='pickup') AND NOT EXISTS(SELECT 1 FROM schema_migrations WHERE version='015_personal_pickup');
+INSERT IGNORE INTO schema_migrations(version) VALUES('015_personal_pickup');
+
+-- Alpha 2.0. Apply to the existing 1.9 database after backup. Repeatable.
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_orders' AND COLUMN_NAME='initial_total')=0,'ALTER TABLE partner_orders ADD initial_total DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_events' AND COLUMN_NAME='pricing_details')=0,'ALTER TABLE partner_order_events ADD pricing_details MEDIUMTEXT NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_base_price')=0,'ALTER TABLE partner_order_items ADD original_base_price DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_unit_price')=0,'ALTER TABLE partner_order_items ADD original_unit_price DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_pricing_mode')=0,'ALTER TABLE partner_order_items ADD original_pricing_mode VARCHAR(20) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='original_pricing_rate')=0,'ALTER TABLE partner_order_items ADD original_pricing_rate DECIMAL(7,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='price_before_extra')=0,'ALTER TABLE partner_order_items ADD price_before_extra DECIMAL(12,2) NULL','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+SET @alpha_sql=IF((SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='partner_order_items' AND COLUMN_NAME='extra_discount_rate')=0,'ALTER TABLE partner_order_items ADD extra_discount_rate DECIMAL(5,2) NOT NULL DEFAULT 0','SET @alpha_noop=1');
+PREPARE alpha_stmt FROM @alpha_sql;
+EXECUTE alpha_stmt;
+DEALLOCATE PREPARE alpha_stmt;
+UPDATE partner_orders SET initial_total=total WHERE initial_total IS NULL;
+UPDATE partner_order_items SET original_base_price=COALESCE(original_base_price,base_price),original_unit_price=COALESCE(original_unit_price,unit_price),original_pricing_mode=COALESCE(original_pricing_mode,pricing_mode),original_pricing_rate=COALESCE(original_pricing_rate,pricing_rate),price_before_extra=COALESCE(price_before_extra,unit_price);
+INSERT IGNORE INTO schema_migrations(version) VALUES('016_order_prices');

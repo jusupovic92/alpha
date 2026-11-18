@@ -9,3 +9,5 @@
 .admin-app .hero-monitor{background:var(--panel)!important}.admin-app .hero-monitor-grid>a,.admin-app .empty-slot,.admin-app .workflow-tabs a{background:var(--bg);border-color:var(--line);color:var(--text)}.admin-app .hero-monitor-grid strong,.admin-app .publication-options strong{color:var(--text)}.admin-app .publication-options{border-color:var(--line)}.admin-app .publication-options legend{color:var(--muted)}.admin-app .workflow-tabs a.active{background:var(--accent);color:#fff}
 
 .alpha-theme-preview{display:block;width:100%;height:auto;border:1px solid var(--border,#d3dfd6);border-radius:6px;margin-bottom:16px}
+
+.alpha-theme-preview{height:180px;object-fit:cover}

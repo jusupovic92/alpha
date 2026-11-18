@@ -29,6 +29,8 @@ function backupClean(string $dir):void {
 function backupTables():array {
     $allowed=['categories','products','orders','order_items','roles','users','shipping_methods','settings','stock_movements','audit_log','notifications','login_attempts','request_limits','schema_migrations','product_images','stock_exits','mail_jobs','app_counters'];
     $found=query("SELECT TABLE_NAME,ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_TYPE='BASE TABLE'")->fetchAll(PDO::FETCH_KEY_PAIR);
+    if(isset($found['brands']))$allowed[]='brands';
+    foreach(['business_partners','partner_prices','partner_orders','partner_order_items','partner_order_events','partner_event_items'] as $table)if(isset($found[$table]))$allowed[]=$table;
     foreach($allowed as $table)if(($found[$table]??'')!=='InnoDB')throw new RuntimeException('Nedostaje WEBSHOP tabela ili nije InnoDB: '.$table);
     if(query('SELECT 1 FROM information_schema.TRIGGERS WHERE TRIGGER_SCHEMA=DATABASE() LIMIT 1')->fetchColumn())throw new RuntimeException('Baza s dodatnim okidačima zahtijeva zasebnu provjeru vraćanja.');
     foreach(query("SELECT TABLE_NAME,REFERENCED_TABLE_NAME FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA=DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL")->fetchAll() as $fk)if(in_array($fk['TABLE_NAME'],$allowed,true)!==in_array($fk['REFERENCED_TABLE_NAME'],$allowed,true))throw new RuntimeException('WEBSHOP tabele su povezane s dodatnim tabelama. Potrebna je zasebna provjera vraćanja.');

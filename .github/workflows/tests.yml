@@ -37,3 +37,29 @@ jobs:
       - run: php tests/backups.php
 
       - run: php tests/alpha.php
+
+      - run: php tests/render-alpha.php
+
+      - run: php tests/options-contact.php
+
+      - run: php tests/brands-slider.php
+
+      - run: php tests/contact-page.php
+
+      - run: php tests/partners.php
+
+      - run: node tests/partners-http.mjs
+
+      - run: php tests/render-partners.php
+
+      - run: php tests/usernames.php
+
+      - run: php tests/partner-password.php
+
+      - run: php tests/pickup.php
+
+      - run: php tests/render-pickup.php
+
+      - run: php tests/order-prices.php
+
+      - run: php tests/render-order-prices.php

@@ -32,12 +32,23 @@ foreach(['alpha-pro'=>'Sve za vašu radionicu.','alpha-premium'=>'Perfekcija u s
     $settings['store_theme']=$theme;
     alphaExpect(alphaTheme()&&storeTheme()===$theme,'theme allowlist: '.$theme);
     ob_start();alphaHero();$html=ob_get_clean();
-    alphaExpect(str_contains($html,$headline)&&str_contains($html,'321,12 KM'),'theme renders data and distinct headline: '.$theme);
+    alphaExpect(str_contains($html,'alpha-company-carousel')&&str_contains($html,'Partner profesionalaca')&&!str_contains($html,'321,12 KM'),'theme presents company without product prices: '.$theme);
 }
+$custom=companySlideDefaults();$custom[0]['title']='<script>alert(1)</script>'; $custom[1]['active']=false;$custom[2]['active']=false;
+$settings['company_slides']=json_encode($custom);ob_start();alphaCompanyCarousel();$customHtml=ob_get_clean();
+alphaExpect(str_contains($customHtml,'&lt;script&gt;')&&!str_contains($customHtml,'<script>'),'company content escaped');
+alphaExpect(substr_count($customHtml,'class="alpha-company-slide"')===1&&!str_contains($customHtml,'data-carousel-next'),'one active company slide hides controls');
+$settings['company_slides']='broken';alphaExpect(count(companySlides())===3,'invalid company settings use defaults');
+unset($settings['company_slides']);
 $settings['store_theme']='untrusted';alphaExpect(storeTheme()==='classic'&&!alphaTheme(),'invalid themes fall back safely');
 query("UPDATE settings SET setting_value='alpha-pro' WHERE setting_key='store_theme'");
 alphaRunSql(dirname(__DIR__).'/database/migrations/010_alpha_themes.sql');
 alphaExpect(query("SELECT setting_value FROM settings WHERE setting_key='store_theme'")->fetchColumn()==='alpha-pro','repeat migration preserves selected theme');
 alphaExpect(imageSource('assets/alpha/disc.svg')==='assets/alpha/disc.svg','local demo images accepted');
 alphaExpect(imageSource('assets/alpha/../../config/local.php')==='assets/product-placeholder.svg','demo image allowlist prevents traversal');
+require dirname(__DIR__).'/app/uploads.php';
+alphaExpect(productImage('assets/alpha/maxxt-polisher.png')[0]==='assets/alpha/maxxt-polisher.png','bundled product photo survives price-only editing');
+alphaExpect(imageSource('assets/alpha/polisher.svg','ALPHA-DEMO-001')==='assets/alpha/maxxt-polisher.png','existing demo photograph resolved without destructive data changes');
+alphaRunSql(dirname(__DIR__).'/database/migrations/011_alpha_photos.sql');
+alphaExpect(query("SELECT price FROM products WHERE sku='ALPHA-DEMO-001'")->fetchColumn()==='321.12','photo migration preserves edited price');
 echo "PASS: Alpha installer, repeat import, preserved data, three layouts and safe images.\n";

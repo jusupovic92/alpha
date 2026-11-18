@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 function createStockExit(int $product,int $qty,string $reason,string $price,string $payment,string $recipient,string $reference,string $note,string $token):int {
-    global $db;requirePermission('inventory');
+    global $db;requirePermission('inventory');if(!inventoryEnabled())throw new RuntimeException('Lager je isključen u postavkama.');
     if(!isset(exitReasons()[$reason])||$qty<1||$qty>1000000||trim($note)===''||mb_strlen($note)>1000||mb_strlen($reference)>150||mb_strlen($recipient)>180||!preg_match('/^[a-f0-9]{64}$/D',$token))throw new RuntimeException('Provjerite artikal, količinu, vrstu izlaza i obavezno obrazloženje.');
     $sale=$reason==='personal_sale';
     if($sale){if(trim($recipient)==='')throw new RuntimeException('Za ličnu prodaju unesite primaoca.');if(!in_array($payment,['unpaid','paid'],true))throw new RuntimeException('Neispravan status naplate.');if($payment==='paid')requirePermission('payments');$unit=cents($price);if($unit<1)throw new RuntimeException('Unesite prodajnu cijenu.');}

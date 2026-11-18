@@ -13,6 +13,7 @@ assert(/^webshop_test(?:_[a-z0-9]+)?$/.test(dbname));
 const quote=s=>"'"+s.replaceAll('\\','\\\\').replaceAll("'","\\'")+"'";
 const cfg={db_host:(process.env.TEST_DB_HOST||'127.0.0.1')+';port='+(process.env.TEST_DB_PORT||'33317'),db_name:dbname,db_user:process.env.TEST_DB_USER||'root',db_pass:process.env.TEST_DB_PASSWORD||'local_test_only'};
 writeFileSync(config,'<?php return ['+Object.entries(cfg).map(([k,v])=>quote(k)+'=>'+quote(v)).join(',')+'];');
+const usernameUpgrade=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'].';charset=utf8mb4',$c['db_user'],$c['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);foreach(['013_business_partners','014_usernames'] as $m)foreach(explode(';',file_get_contents('database/migrations/'.$m.'.sql')) as $sql)if(trim($sql)!=='')$d->exec($sql);$d->exec("UPDATE users SET username=SUBSTRING_INDEX(email,'@',1)");`],{cwd:root,encoding:'utf8'});assert.equal(usernameUpgrade.status,0,usernameUpgrade.stderr);
 const probe=net.createServer();await new Promise(resolve=>probe.listen(0,'127.0.0.1',resolve));const port=probe.address().port;await new Promise(resolve=>probe.close(resolve));
 const base='http://127.0.0.1:'+port+'/';
 const server=spawn(php,['-S','127.0.0.1:'+port,'-t',path.join(root,'public')],{stdio:['ignore','pipe','pipe']});
@@ -28,8 +29,8 @@ try{
  let ready=false;for(let i=0;i<40;i++){assert.equal(server.exitCode,null,'PHP server stays running');try{await request('');ready=true;break;}catch{await new Promise(r=>setTimeout(r,100));}}assert(ready,'PHP server ready');
  assert.equal((await request('')).status,200);
  assert.equal((await request('admin.php?page=users')).status,200,'anonymous sees login only');
- assert.equal((await request('admin.php',guest,{action:'login',email:'bad@example.test',password:'wrong',csrf:'bad'})).status,403,'CSRF blocked');
- let login=await request('admin.php',admin);let result=await request('admin.php',admin,{action:'login',email:'admin@example.test',password:'test-password-123',csrf:csrf(login.text)});assert.equal(result.status,303);
+ assert.equal((await request('admin.php',guest,{action:'login',username:'bad',password:'wrong',csrf:'bad'})).status,403,'CSRF blocked');
+ let login=await request('admin.php',admin);let result=await request('admin.php',admin,{action:'login',username:'admin',password:'test-password-123',csrf:csrf(login.text)});assert.equal(result.status,303);
  for(const page of ['dashboard','products','products&create=1','categories','inventory','reports','exits','exits&create=1','orders','order&id=2','settings','branding','themes','backups','mail','delivery','users','roles','audit','print&id=2','print&type=stock']){
   result=await request('admin.php?page='+page,admin);assert.equal(result.status,200,page);assert(!result.text.includes('<h1>Prijava</h1>'),page+' authenticated');
  }
@@ -121,13 +122,13 @@ try{
  assert.equal((await request('admin.php?page=products',admin,injection)).status,303);
  assert((await request('admin.php?page=reports&export=stock',admin)).text.includes("'=BAD-SKU"),'CSV formula injection neutralized');
  // A user with no permissions must be denied both pages and direct POST actions.
- const seed=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'],$c['db_user'],$c['db_pass']);$d->exec("INSERT INTO roles(name,permissions) VALUES('Bez dozvola','[]')");$s=$d->prepare('INSERT INTO users(role_id,name,email,password_hash) VALUES(?,?,?,?)');$s->execute([$d->lastInsertId(),'Restricted','restricted@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([3,'Stock','stock@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([4,'Finance','finance@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);`],{cwd:root,encoding:'utf8'});assert.equal(seed.status,0,seed.stderr);
- const restricted=jar();login=await request('admin.php',restricted);assert.equal((await request('admin.php',restricted,{action:'login',email:'restricted@example.test',password:'test-password-123',csrf:csrf(login.text)})).status,303);
+ const seed=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'],$c['db_user'],$c['db_pass']);$d->exec("INSERT INTO roles(name,permissions) VALUES('Bez dozvola','[]')");$s=$d->prepare('INSERT INTO users(role_id,name,email,password_hash) VALUES(?,?,?,?)');$s->execute([$d->lastInsertId(),'Restricted','restricted@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([3,'Stock','stock@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$s->execute([4,'Finance','finance@example.test',password_hash('test-password-123',PASSWORD_DEFAULT)]);$d->exec("UPDATE users SET username=SUBSTRING_INDEX(email,'@',1) WHERE username IS NULL");`],{cwd:root,encoding:'utf8'});assert.equal(seed.status,0,seed.stderr);
+ const restricted=jar();login=await request('admin.php',restricted);assert.equal((await request('admin.php',restricted,{action:'login',username:'restricted',password:'test-password-123',csrf:csrf(login.text)})).status,303);
  const dashboard=await request('admin.php',restricted);
  for(const page of ['users','roles','orders','inventory','reports','reports&export=stock','exits','exits&export=csv','print&id=2','print&type=stock','settings'])assert.equal((await request('admin.php?page='+page,restricted)).status,403,'restricted '+page);
  assert.equal((await request('admin.php',restricted,{action:'stock',id,quantity:999,note:'unauthorized',csrf:csrf(dashboard.text)})).status,403,'direct POST permission enforcement');
  const staffSessions={};for(const [email,allowed,denied] of [['stock@example.test','stock','payments'],['finance@example.test','payments','stock']]){
-  const staff=jar(),screen=await request('admin.php',staff);assert.equal((await request('admin.php',staff,{action:'login',email,password:'test-password-123',csrf:csrf(screen.text)})).status,303);
+  const staff=jar(),screen=await request('admin.php',staff);assert.equal((await request('admin.php',staff,{action:'login',username:email.split('@')[0],password:'test-password-123',csrf:csrf(screen.text)})).status,303);
   assert.equal((await request('admin.php?page=reports&export='+allowed,staff)).status,200,'authorized '+allowed+' export');
   assert.equal((await request('admin.php?page=reports&export='+denied,staff)).status,403,'unauthorized '+denied+' export');
   staffSessions[email]=staff;
@@ -194,14 +195,82 @@ try{
  // Alpha theme persistence, all customer surfaces and protected idempotent demo import.
  for(const theme of ['alpha-pro','alpha-premium','alpha-hybrid']){
    assert.equal((await request('admin.php?page=themes',admin,{action:'store_theme',theme,csrf:csrf(themes.text)})).status,303);
-   const home=await request('',buyer);assert(home.text.includes('class="alpha-hero '),'Alpha hero rendered');
+   const home=await request('',buyer);assert(home.text.includes('class="alpha-company-carousel'),'Alpha hero rendered');
    for(const url of ['','?all=1','?page=cart','?page=checkout','?page=product&id=1'])assert((await request(url,buyer)).text.includes('data-store-theme="'+theme+'"'));
-   assert(!(await request('?all=1',buyer)).text.includes('class="alpha-hero '),'catalog has no promotional hero');
+   assert(!(await request('?all=1',buyer)).text.includes('class="alpha-company-carousel'),'catalog has no promotional hero');
+   for(const article of ['odabir-polirke','priprema-povrsine','brusni-disk']){const r=await request('?page=advice&article='+article,buyer);assert.equal(r.status,200);assert(r.text.includes('alpha-content-page')&&r.text.includes('alpha-article-intro'));}
+   for(const section of ['kontakt','dostava','reklamacije','uslovi','privatnost']){const r=await request('?page=info&section='+section,buyer);assert.equal(r.status,200);assert(r.text.includes('alpha-content-page'));}
+   assert.equal((await request('?page=advice&article=invalid',buyer)).status,404);
+   assert.equal((await request('?page=info&section=invalid',buyer)).status,404);
+   if(theme==='alpha-premium'){assert(home.text.includes('alpha-value-section')&&home.text.includes('alpha-advice-section')&&home.text.includes('alpha-rich-footer'));assert(home.text.includes('120+'),'company metrics from supplied reference');}
+
  }
  assert.equal((await request('admin.php?page=themes',stockStaff,{action:'alpha_demo',csrf:csrf(staffExitForm.text)})).status,403);
  assert.equal((await request('admin.php?page=themes',admin,{action:'alpha_demo',csrf:'invalid'})).status,403);
  for(let repeat=0;repeat<2;repeat++)assert.equal((await request('admin.php?page=themes',admin,{action:'alpha_demo',csrf:csrf(themes.text)})).status,303);
  const demoSearch=await request('?q=ALPHA-DEMO-001',buyer);assert(demoSearch.text.includes('MAXXT ekscentrična polirka 15 mm'),'SKU search finds seeded product');assert(demoSearch.text.includes('Testna ponuda.'),'demo is clearly labeled');
+
+
+ const upgradeBrands=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'].';charset=utf8mb4',$c['db_user'],$c['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);foreach(explode(';',file_get_contents('database/migrations/012_brands_slider.sql')) as $s)if(trim($s)!=='')$d->exec($s);`],{cwd:root,encoding:'utf8'});assert.equal(upgradeBrands.status,0,upgradeBrands.stderr);
+ const brandPage=await request('admin.php?page=brands',admin);assert.equal(brandPage.status,200);assert(brandPage.text.includes('brand-maxxt.png'));
+ const sliderPage=await request('admin.php?page=themes',admin);assert(sliderPage.text.includes('slider_interval'));
+ assert.equal((await request('admin.php?page=themes',admin,{action:'slider_settings',slider_count:'2',slider_interval:'2',slider_duration:'200',slider_effect:'slide',slider_autoplay:'on',slider_hover_pause:'on',csrf:csrf(sliderPage.text)})).status,303);
+ assert.equal((await request('admin.php?page=products',admin,{action:'hero_publish',id:'1',csrf:csrf(sliderPage.text)})).status,303);
+ const sliderHome=await request('',buyer);assert.equal((sliderHome.text.match(/class="alpha-company-slide"/g)||[]).length,3);assert(sliderHome.text.includes('data-interval="2000"')&&sliderHome.text.includes('data-effect="slide"'));
+ const companyHero=sliderHome.text.split('class="alpha-company-carousel"')[1].split('</section>')[0];assert(!companyHero.includes('?page=product'),'published products do not replace company identity');
+ assert.equal((await request('admin.php?page=themes',admin,{action:'store_theme',theme:'classic',csrf:csrf(sliderPage.text)})).status,303);
+ const legacyHome=await request('',buyer);const firstSlide=legacyHome.text.split('class="hero-slide ')[1].split('</article>')[0];assert(firstSlide.includes('?page=product&amp;id=1')||firstSlide.includes('?page=product&id=1'),'old product publication still serves legacy themes');
+ assert.equal((await request('admin.php?page=themes',admin,{action:'store_theme',theme:'alpha-hybrid',csrf:csrf(sliderPage.text)})).status,303);
+ const brandCatalog=await request('?brand=1',buyer);assert.equal(brandCatalog.status,200);assert(!brandCatalog.text.includes('class="alpha-company-carousel'));assert(brandCatalog.text.includes('MAXXT'));
+ assert.equal((await request('admin.php?page=brands',admin,{action:'brand',id:'1',name:'MAXXT',slug:'maxxt',logo_url:'assets/alpha/brand-maxxt.png',website:'https://maxxttools.com/',logo_dark:'1',sort_order:'10',active:'on',show_on_home:'on',csrf:csrf(brandPage.text)})).status,303);
+ assert.equal((await request('admin.php?page=brands',admin,{action:'brand',id:'1',name:'MAXXT',slug:'maxxt',logo_url:'javascript:alert(1)',website:'https://maxxttools.com/',logo_dark:'1',sort_order:'10',csrf:csrf(brandPage.text)})).status,200,'invalid logo URL rejected');
+ console.log('PASS: brand management, filtering, publication action and slider options through HTTP');
+ const modePage=await request('admin.php?page=settings',admin);
+ assert.equal((await request('admin.php?page=settings',stockStaff,{action:'inventory_mode',inventory_enabled:'0',csrf:csrf(staffExitForm.text)})).status,403,'inventory option requires settings permission');
+ assert.equal((await request('admin.php?page=settings',admin,{action:'inventory_mode',inventory_enabled:'0',csrf:csrf(modePage.text)})).status,303);
+ assert.equal((await request('admin.php?page=inventory',admin)).status,403);
+ assert(!(await request('admin.php?page=products',admin)).text.includes('<th>Slobodno</th>'));
+ const freeSearch=await request('?q=ALPHA-DEMO-006',buyer);assert(!freeSearch.text.includes('stock-empty')&&!freeSearch.text.includes('Na lageru'),'public stock indicators hidden');
+ const zeroId=freeSearch.text.match(/name="id" value="(\d+)"/)[1];
+ const zeroDetail=await request('?page=product&id='+zeroId,buyer);assert(!zeroDetail.text.includes('Dostupno na lageru'));assert(!zeroDetail.text.includes('class="buy-button" disabled'));
+ await request('?page=add',buyer,{id:zeroId,qty:'3',csrf:csrf(zeroDetail.text)});
+ const freeCheckout=await request('?page=checkout',buyer);assert.equal(freeCheckout.status,200);
+ const freeToken=freeCheckout.text.match(/name="checkout_token" value="([a-f0-9]+)"/)[1];
+ assert.equal((await request('?page=checkout',buyer,{csrf:csrf(freeCheckout.text),checkout_token:freeToken,customer_name:'Bez lagera',email:'untracked@example.test',phone:'123',address:'Test',city:'Test',note:'Test',shipping_method:'1',payment_method:'cod'})).status,303);
+ assert((await request('?page=success',buyer)).text.includes('Hvala na narudžbi'));
+ assert.equal((await request('admin.php?page=settings',admin,{action:'inventory_mode',inventory_enabled:'1',csrf:csrf(modePage.text)})).status,303);
+ assert((await request('?page=product&id='+zeroId,buyer)).text.includes('class="buy-button" disabled'));
+ const mailPage=await request('admin.php?page=mail',admin);
+ assert.equal((await request('admin.php?page=mail',admin,{action:'mail_settings',mail_contact_enabled:'on',mail_transport:'smtp',mail_host:'127.0.0.1',mail_port:'9',mail_security:'ssl',mail_username:'',mail_from:'shop@example.test',mail_from_name:'Test',mail_recipients:'contacts@example.test',mail_base_url:'https://example.test',csrf:csrf(mailPage.text)})).status,303);
+ const contactPage=await request('?page=info&section=kontakt',buyer);assert(contactPage.text.includes('class="alpha-contact-form"'));
+ const contactToken=contactPage.text.match(/name="contact_token" value="([a-f0-9]+)"/)[1];
+ assert.equal((await request('?page=contact',buyer,{csrf:'invalid'})).status,403);
+ const contactPost={csrf:csrf(contactPage.text),contact_token:contactToken,contact_name:'Šefik Čolić',contact_email:'sef@example.test',contact_phone:'061123',contact_message:'Kontakt iz HTTP testa.',contact_consent:'1'};
+ assert.equal((await request('?page=contact',buyer,{...contactPost,contact_email:'bad'})).status,303);
+ assert((await request('?page=info&section=kontakt',buyer)).text.includes('ispravan e-mail'));
+ assert.equal((await request('?page=contact',buyer,contactPost)).status,303);
+ assert((await request('?page=info&section=kontakt&sent=1',buyer)).text.includes('Vaš upit je zaprimljen'));
+ assert((await request('admin.php?page=mail',admin)).text.includes('Kontakt upit'));
+ const contactAdmin=await request('admin.php?page=contact',admin);assert.equal(contactAdmin.status,200);assert(contactAdmin.text.includes('contact_map_embed')&&contactAdmin.text.includes('contact_recipients'));
+ assert.equal((await request('admin.php?page=contact',stockStaff)).status,403,'private contact editor requires settings permission');
+ const contactSettings={action:'contact_settings',csrf:csrf(contactAdmin.text),contact_company:'Alpha Čedo',contact_title:'Kontaktirajte nas',contact_email:'public@example.test',sender_phone:'+387 61 401 860',contact_address:'Melente Bošnjaka 9, Kakanj',contact_recipients:'private-leads@example.test',contact_map_embed:'https://www.google.com/maps/embed?pb=test',contact_form_enabled:'on',contact_map_enabled:'on',contact_topbar_enabled:'on',mail_contact_enabled:'on'};
+ assert.equal((await request('admin.php?page=contact',stockStaff,{...contactSettings,csrf:csrf(staffExitForm.text)})).status,403);
+ assert.equal((await request('admin.php?page=contact',admin,{...contactSettings,csrf:'invalid'})).status,403);
+ const invalidMap=await request('admin.php?page=contact',admin,{...contactSettings,contact_map_embed:'https://evil.test/maps/embed'});assert.equal(invalidMap.status,200);assert(invalidMap.text.includes('mora biti HTTPS Google Maps'));
+ assert.equal((await request('admin.php?page=contact',admin,contactSettings)).status,303);
+ const savedContact=await request('?page=info&section=kontakt',buyer);assert(savedContact.text.includes('Alpha Čedo')&&savedContact.text.includes('<iframe')&&savedContact.text.includes('public@example.test'));assert(!savedContact.text.includes('private-leads@example.test'));
+ console.log('PASS: contact administration, CSRF and permissions, safe map embed and private recipients through HTTP');
+ console.log('PASS: HTTP inventory toggle, zero-stock checkout and contact validation/queue');
+ const pickupUpgrade=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'].';charset=utf8mb4',$c['db_user'],$c['db_pass'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);foreach(explode(';',file_get_contents('database/migrations/015_personal_pickup.sql')) as $sql)if(trim($sql)!=='')$d->exec($sql);$d->exec("INSERT INTO products(sku,name,price,stock) VALUES('HTTP-PICKUP','Pickup HTTP product',19.99,3)");echo $d->lastInsertId();`],{cwd:root,encoding:'utf8'});assert.equal(pickupUpgrade.status,0,pickupUpgrade.stderr);const pickupProduct=pickupUpgrade.stdout.trim();
+ const pickupForm=await request('admin.php?page=delivery',admin);assert(pickupForm.text.includes('data-method-type'));assert.equal((await request('admin.php?page=delivery',admin,{action:'delivery',id:'0',name:'HTTP pickup',delivery_type:'pickup',terms:'Preuzimanje u prodavnici',active:'on',csrf:csrf(pickupForm.text)})).status,303,'pickup saves without cost or courier');
+ const pickupList=await request('admin.php?page=delivery',admin);const pickupId=pickupList.text.match(/<tr><td><strong>HTTP pickup<\/strong>[^]*?href="\?page=delivery&id=(\d+)"/)[1];assert((await request('admin.php?page=delivery&id='+pickupId,admin)).text.includes('disabled hidden'));
+ assert.equal((await request('admin.php?page=delivery',admin,{action:'delivery',id:pickupId,name:'HTTP pickup',delivery_type:'pickup',cost:'999,99',courier_name:'Injected',payer:'sender',terms:'Preuzimanje u prodavnici',active:'on',csrf:csrf(pickupForm.text)})).status,303);
+ const pickupBuyer=jar();let screen=await request('?page=product&id='+pickupProduct,pickupBuyer);await request('?page=add',pickupBuyer,{id:pickupProduct,qty:'1',csrf:csrf(screen.text)});screen=await request('?page=checkout',pickupBuyer);assert(screen.text.includes('data-type="pickup" data-cost="0"'));
+ assert.equal((await request('?page=checkout',pickupBuyer,{csrf:csrf(screen.text),checkout_token:screen.text.match(/name="checkout_token" value="([a-f0-9]+)"/)[1],customer_name:'Pickup HTTP customer',email:'pickup-http@example.test',phone:'123',address:'Test',city:'Kakanj',note:'Pickup HTTP',shipping_method:pickupId,payment_method:'cod'})).status,303);
+ const pickupRecord=spawnSync(php,['-r',`$c=require 'config/local.php';$d=new PDO('mysql:host='.$c['db_host'].';dbname='.$c['db_name'],$c['db_user'],$c['db_pass']);echo json_encode($d->query("SELECT id,total,shipping_cost,shipping_type FROM orders WHERE email='pickup-http@example.test' ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC));`],{cwd:root,encoding:'utf8'});assert.equal(pickupRecord.status,0,pickupRecord.stderr);const pickupOrder=JSON.parse(pickupRecord.stdout);assert.equal(pickupOrder.shipping_type,'pickup');assert.equal(pickupOrder.shipping_cost,'0.00');assert.equal(pickupOrder.total,'19.99');
+ const pickupDetail=await request('admin.php?page=order&id='+pickupOrder.id,admin);assert(pickupDetail.text.includes('Potvrda ličnog preuzimanja')&&!pickupDetail.text.includes('Potvrdi slanje i razduži lager'));assert((await request('admin.php?page=print&id='+pickupOrder.id,admin)).text.includes('List za lično preuzimanje'));
+ assert.equal((await request('admin.php?page=order&id='+pickupOrder.id,admin,{action:'status',id:pickupOrder.id,status:'handed_over',dispatch_note:'Preuzeto lično HTTP',csrf:csrf(pickupDetail.text)})).status,303);
+ console.log('PASS: HTTP free pickup catalog, omitted cost fields, tampered cost, retail totals, personal handover and print.');
  console.log('PASS: three Alpha layouts, persisted selection, SKU search and protected repeatable demo import');
  console.log('PASS: HTTP checkout, paid preparation to dispatched/paid, courier and tracking, order filters, typed exits, notes, reversals, CSV and separate warehouse/finance permissions; storefront regressions pass');
 }catch(e){console.error(logs);throw e;}finally{server.kill();if(existsSync(config))unlinkSync(config);}
