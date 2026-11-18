@@ -1,0 +1,87 @@
+/* Alpha 2.2: airy company presentation shared by the three Alpha themes. */
+.storefront[data-store-theme^=alpha-]{--ink:#14281f;--paper:#fff;--muted:#60736a;--theme-soft:#f3f6f4;--theme-line:#dce5df;background:#fafbfaff!important;color:#14281f}
+.storefront[data-store-theme^=alpha-] .store-header{background:#fff!important;color:#14281f!important}
+.storefront[data-store-theme^=alpha-] .store-header .header-search input{background:#f7f9f7;color:#14281f;border-color:#d4dfd8}
+.storefront[data-store-theme^=alpha-] .store-header .header-search input::placeholder{color:#61756a}
+.storefront[data-store-theme^=alpha-] .store-header .cart-link{color:#14281f!important}
+.storefront[data-store-theme^=alpha-] .alpha-cart-icon{filter:none}
+.storefront[data-store-theme^=alpha-] .store-header .partner-login-link{background:#fff;border-color:#168355;color:#145336!important;box-shadow:none}
+.storefront[data-store-theme^=alpha-] .store-header .partner-login-link:hover{background:#edf7f0;border-color:#ff8700}
+.storefront[data-store-theme^=alpha-] .store-nav{background:#fff;color:#223e2f;border-top:1px solid #e5ebe7;border-bottom:2px solid #ff8700}
+.storefront[data-store-theme^=alpha-] .store-nav a{color:#223e2f!important}
+.storefront[data-store-theme^=alpha-] .store-nav a:hover{color:#a84600!important}
+.storefront[data-store-theme^=alpha-] .alpha-contact-topbar{background:#edf7f0;color:#1b5e3b;border-bottom:1px solid #dcebe1}
+.storefront[data-store-theme^=alpha-] .alpha-mobile-menu{background:#f0f6f2;color:#17472e;border-color:#d7e5dc}
+.storefront[data-store-theme^=alpha-] .alpha-mobile-menu nav{background:#fff;color:#17472e}
+.storefront[data-store-theme^=alpha-] .alpha-mobile-menu a{color:#17472e}
+.alpha-company-carousel{position:relative;isolation:isolate;overflow:hidden;border:1px solid #e3e9e4;border-radius:12px;margin:26px 0 0;background:#f4f6f2;min-height:510px}
+.alpha-company-slide{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);gap:45px;align-items:center;padding:52px 44px 86px;min-height:510px}
+.alpha-company-slide[hidden]{display:none!important}
+.alpha-company-photo{position:absolute;z-index:-2;inset:0;overflow:hidden}
+.alpha-company-photo img{width:100%;height:100%;object-fit:cover;object-position:60% center;display:block}
+.alpha-company-photo:after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,#fffffffa,#ffffffeb 43%,#ffffffa8 100%)}
+.alpha-company-copy{min-width:0;max-width:680px}
+.alpha-company-kicker{font-size:10px;font-weight:750;letter-spacing:1.8px;color:#a94c00;margin:0 0 20px;line-height:1.6}
+.alpha-company-copy :is(h1,h2){font-size:clamp(34px,3.8vw,55px);font-weight:800;letter-spacing:-1.8px;line-height:1.09;color:#14281f;margin:0 0 24px;overflow-wrap:break-word}
+.alpha-company-copy>p:not(.alpha-company-kicker){color:#425a4d;max-width:570px;font-size:16px;line-height:1.75;margin:0 0 28px}
+.alpha-company-actions{display:flex;align-items:center;gap:16px 22px;flex-wrap:wrap}
+.storefront .alpha-company-actions .btn{background:#ff8700;color:#14281f;border:1px solid #ff8700;border-radius:5px;font-size:13px;font-weight:750;padding:13px 21px;min-height:46px;display:inline-flex;gap:24px;align-items:center}
+.storefront .alpha-company-actions .btn:hover{background:#ffac42;border-color:#ffac42}
+.alpha-company-actions>a:not(.btn){font-size:12px;font-weight:650;color:#17683f;line-height:1.7;text-decoration:underline;text-underline-offset:4px}
+.alpha-company-metrics{display:grid;gap:15px;min-width:0}
+.alpha-company-metrics>div{display:grid;padding:19px 23px;border-left:3px solid #00a35c;background:#ffffffef;box-shadow:0 8px 25px #253a2510;gap:4px}
+.alpha-company-metrics>div:nth-child(2){border-left-color:#ff8700}
+.alpha-company-metrics strong{font-size:33px;letter-spacing:-1px;color:#183d29;line-height:1.05}
+.alpha-company-metrics span{font-size:13px;color:#60736a;line-height:1.5}
+.alpha-company-carousel .alpha-slider-controls{left:44px;right:44px;justify-content:flex-start;bottom:17px}
+.alpha-company-carousel .alpha-slider-controls>button{background:#fff!important;color:#22613f!important;border-color:#b8d5c3}
+.alpha-company-carousel .alpha-slider-dots button{background:#e0eae3!important;color:#275c3c!important}
+.alpha-company-carousel .alpha-slider-dots button[aria-pressed=true]{background:#ff8700!important;color:#14281f!important}
+.alpha-company-intro{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;padding:28px 0 30px;border-bottom:1px solid #dce6df;margin-bottom:24px}
+.alpha-company-intro>div{min-width:0;padding-left:17px;border-left:2px solid #ff8700}
+.alpha-company-intro span{font-size:9px;letter-spacing:1.4px;color:#177244;font-weight:750}
+.alpha-company-intro h2{font-size:17px;line-height:1.4;color:#173d29;margin:8px 0}
+.alpha-company-intro p{font-size:12px;line-height:1.7;color:#61756a;margin:0;max-width:340px}
+.storefront[data-store-theme^=alpha-] .alpha-categories>a{background:#fff;border:1px solid #dce6df;border-bottom:3px solid #ff8700;box-shadow:0 3px 15px #163f2406}
+.storefront[data-store-theme^=alpha-] .alpha-categories>a:before{display:none}
+.storefront[data-store-theme^=alpha-] .alpha-categories .alpha-category-label{color:#203e2d}
+.storefront[data-store-theme^=alpha-] .alpha-categories .alpha-category-icon{color:#b75000!important}
+.storefront[data-store-theme^=alpha-] .alpha-categories>a:hover{background:#fff9f0;border-color:#ff8700}
+.storefront[data-store-theme^=alpha-] .section-heading h2{color:#163a28}
+.storefront[data-store-theme^=alpha-] .alpha-collections{border-color:#dce6df}
+.storefront[data-store-theme^=alpha-] .alpha-collections a{color:#426652!important}
+.storefront[data-store-theme^=alpha-] .alpha-collections a[aria-current]{color:#153e27!important}
+.storefront[data-store-theme^=alpha-] :is(.alpha-view-all,.alpha-advice-copy>span){color:#146b3f!important}
+.storefront[data-store-theme^=alpha-] .alpha-demo-notice{color:#6c624a}
+.storefront[data-store-theme^=alpha-] .alpha-value-section{background:#f0f6f2;border:1px solid #dae7de;border-top:3px solid #ff8700;color:#183c29;box-shadow:none}
+.storefront[data-store-theme^=alpha-] .alpha-value-copy :is(h2,p){color:#183c29!important}
+.storefront[data-store-theme^=alpha-] .alpha-value-copy>p:not(.alpha-section-kicker){color:#557160!important}
+.storefront[data-store-theme^=alpha-] .alpha-value-grid article{background:#fff;border-color:#d8e6dd;border-top-color:#ff8700}
+.storefront[data-store-theme^=alpha-] .alpha-value-grid h3{color:#193e2b}
+.storefront[data-store-theme^=alpha-] .alpha-value-grid p{color:#557160}
+.storefront[data-store-theme^=alpha-] .alpha-value-grid svg{color:#b75000!important}
+.storefront[data-store-theme^=alpha-] .alpha-brand-section{border-color:#dce6df}
+.storefront[data-store-theme^=alpha-] .alpha-advice-card{background:#fff;border-color:#dce6df}
+.storefront[data-store-theme^=alpha-] .alpha-advice-copy h3{color:#193e2b}
+.storefront[data-store-theme^=alpha-] .alpha-contact-banner{background:linear-gradient(90deg,#eef6f0f7,#eef6f0e6 60%,#eef6f08a),url('alpha/spray-guns.jpg') center/cover;border:1px solid #d6e5da;border-left:5px solid #ff8700}
+.storefront[data-store-theme^=alpha-] .alpha-contact-banner :is(h2,p){color:#193e2b!important}
+.storefront[data-store-theme^=alpha-] .alpha-contact-banner .btn.secondary{color:#205b38;background:#fff;border-color:#7ea88e}
+.storefront[data-store-theme^=alpha-] :is(.panel,.description-panel,.alpha-content-page){background:#fff;color:#234832;border-color:#dce6df}
+.storefront[data-store-theme^=alpha-] :is(.product-info h1,.product-info h2,.alpha-content-page h1,.alpha-content-page h2){color:#173b28}
+.storefront[data-store-theme^=alpha-] :is(.catalog-filters,.alpha-filter-box){background:#f2f6f3;color:#2b5039}
+.storefront[data-store-theme^=alpha-] :is(.long-description,.detail-intro,.catalog-filters label){color:#496b56}
+.storefront[data-store-theme^=alpha-] :is(.alpha-contact-card,.alpha-contact-form-panel,.alpha-contact-business){background:#fff;color:#234832;border-color:#d5e4d9}
+.storefront[data-store-theme^=alpha-] .alpha-contact-form-intro{color:#557160}
+.storefront[data-store-theme^=alpha-] .alpha-contact-form :is(input:not([type=checkbox]),textarea){background:#f7faf8;color:#234832;border-color:#bacfc1}
+.storefront[data-store-theme^=alpha-] .alpha-rich-footer{background:#f0f5f1;border-top:3px solid #ff8700;color:#214630}
+.storefront[data-store-theme^=alpha-] .alpha-rich-footer h3{color:#1f633b}
+.storefront[data-store-theme^=alpha-] .alpha-rich-footer :is(p,a:not(.brand),.footer-bottom){color:#42644e!important}
+.storefront[data-store-theme^=alpha-] .alpha-rich-footer .footer-bottom{border-top-color:#ccddd1;border-bottom-width:3px}
+/* Layout differences stay subtle; all three use a light foundation. */
+.storefront[data-store-theme=alpha-premium] .alpha-company-carousel{border-radius:5px;border-top:4px solid #ff8700}
+.storefront[data-store-theme=alpha-premium] .alpha-company-copy :is(h1,h2){letter-spacing:-2px}
+.storefront[data-store-theme=alpha-hybrid] .alpha-company-metrics>div{border-radius:0 10px 10px 0}
+.storefront[data-store-theme=alpha-hybrid] .alpha-company-photo:after{background:linear-gradient(108deg,#fffffffa,#fffffff0 46%,#edf7efb0)}
+@media(max-width:1000px){.alpha-company-slide{padding:36px 28px 82px;gap:25px}.alpha-company-copy :is(h1,h2){font-size:39px}.alpha-company-metrics>div{padding:17px}.alpha-company-intro{gap:16px}.alpha-company-carousel .alpha-slider-controls{left:28px;right:28px}}
+@media(max-width:760px){.alpha-company-carousel{min-height:0;margin-top:16px}.alpha-company-slide{grid-template-columns:1fr;gap:27px;padding:30px 22px 80px;min-height:0}.alpha-company-copy :is(h1,h2){font-size:35px;letter-spacing:-1.2px;margin-bottom:18px}.alpha-company-copy>p:not(.alpha-company-kicker){font-size:14px;line-height:1.7;margin-bottom:22px}.alpha-company-kicker{font-size:9px;letter-spacing:1px;margin-bottom:15px}.alpha-company-photo:after{background:linear-gradient(#ffffffed,#fffffff5)}.alpha-company-metrics{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.alpha-company-metrics>div{padding:13px 9px;border-left-width:2px;gap:5px}.alpha-company-metrics strong{font-size:24px}.alpha-company-metrics span{font-size:10px;overflow-wrap:anywhere}.alpha-company-carousel .alpha-slider-controls{left:22px;right:22px;bottom:15px}.alpha-company-actions{gap:14px}.alpha-company-actions>a:not(.btn){font-size:11px}.alpha-company-intro{grid-template-columns:1fr;padding:24px 0;gap:21px;margin-bottom:20px}.alpha-company-intro h2{font-size:17px}.alpha-company-intro p{max-width:none}.storefront[data-store-theme^=alpha-] .alpha-rich-footer{padding-top:32px}}
+@media(prefers-reduced-motion:reduce){.alpha-company-carousel *{animation:none!important;transition:none!important}}

@@ -28,12 +28,18 @@ alphaExpect((int)query('SELECT COUNT(*) FROM products')->fetchColumn()===12,'rep
 alphaExpect((int)query('SELECT COUNT(*) FROM stock_movements')->fetchColumn()===12,'repeat demo import does not duplicate movements');
 $edited=query("SELECT price,stock FROM products WHERE sku='ALPHA-DEMO-001'")->fetch();
 alphaExpect($edited['price']==='321.12'&&(int)$edited['stock']===2,'repeat import preserves manually edited prices and stock');
-foreach(['alpha-pro'=>'Sve za vašu radionicu.','alpha-premium'=>'Perfekcija u svakom sloju.','alpha-hybrid'=>'Od pripreme do savršenog sjaja.'] as $theme=>$headline){
+foreach(['alpha-pro'=>'Sve za va�u radionicu.','alpha-premium'=>'Perfekcija u svakom sloju.','alpha-hybrid'=>'Od pripreme do savr�enog sjaja.'] as $theme=>$headline){
     $settings['store_theme']=$theme;
     alphaExpect(alphaTheme()&&storeTheme()===$theme,'theme allowlist: '.$theme);
     ob_start();alphaHero();$html=ob_get_clean();
-    alphaExpect(str_contains($html,'data-slide')&&str_contains($html,'321,12 KM'),'theme renders selected product slides: '.$theme);
+    alphaExpect(str_contains($html,'alpha-company-carousel')&&str_contains($html,'Partner profesionalaca')&&!str_contains($html,'321,12 KM'),'theme presents company without product prices: '.$theme);
 }
+$custom=companySlideDefaults();$custom[0]['title']='<script>alert(1)</script>'; $custom[1]['active']=false;$custom[2]['active']=false;
+$settings['company_slides']=json_encode($custom);ob_start();alphaCompanyCarousel();$customHtml=ob_get_clean();
+alphaExpect(str_contains($customHtml,'&lt;script&gt;')&&!str_contains($customHtml,'<script>'),'company content escaped');
+alphaExpect(substr_count($customHtml,'class="alpha-company-slide"')===1&&!str_contains($customHtml,'data-carousel-next'),'one active company slide hides controls');
+$settings['company_slides']='broken';alphaExpect(count(companySlides())===3,'invalid company settings use defaults');
+unset($settings['company_slides']);
 $settings['store_theme']='untrusted';alphaExpect(storeTheme()==='classic'&&!alphaTheme(),'invalid themes fall back safely');
 query("UPDATE settings SET setting_value='alpha-pro' WHERE setting_key='store_theme'");
 alphaRunSql(dirname(__DIR__).'/database/migrations/010_alpha_themes.sql');

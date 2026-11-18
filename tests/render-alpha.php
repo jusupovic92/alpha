@@ -19,7 +19,7 @@ try{
         $update=$db->prepare("UPDATE settings SET setting_value=? WHERE setting_key='store_theme'");$update->execute([$theme]);
         $process=proc_open([PHP_BINARY,'-r','$_SERVER["REQUEST_METHOD"]="GET"; $_SERVER["HTTPS"]="on"; require "public/index.php";'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$root);
         fclose($pipes[0]);$html=stream_get_contents($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
-        if(proc_close($process)!==0||$errors!==''||!str_contains($html,'alpha-photo-hero'))throw new RuntimeException($errors?:'Preview did not render.');
+        if(proc_close($process)!==0||$errors!==''||!str_contains($html,'alpha-company-carousel'))throw new RuntimeException($errors?:'Preview did not render.');
         echo 'ALPHA_PREVIEW '.$theme.' '.base64_encode($html)."\n";
         $process=proc_open([PHP_BINARY,'-r','$_GET=["page"=>"info","section"=>"kontakt"]; $_SERVER["REQUEST_METHOD"]="GET"; $_SERVER["HTTPS"]="on"; require "public/index.php";'],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes,$root);
         fclose($pipes[0]);$html=stream_get_contents($pipes[1]);$errors=stream_get_contents($pipes[2]);fclose($pipes[1]);fclose($pipes[2]);
