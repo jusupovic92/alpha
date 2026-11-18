@@ -216,8 +216,11 @@ try{
  const sliderPage=await request('admin.php?page=themes',admin);assert(sliderPage.text.includes('slider_interval'));
  assert.equal((await request('admin.php?page=themes',admin,{action:'slider_settings',slider_count:'2',slider_interval:'2',slider_duration:'200',slider_effect:'slide',slider_autoplay:'on',slider_hover_pause:'on',csrf:csrf(sliderPage.text)})).status,303);
  assert.equal((await request('admin.php?page=products',admin,{action:'hero_publish',id:'1',csrf:csrf(sliderPage.text)})).status,303);
- const sliderHome=await request('',buyer);assert.equal((sliderHome.text.match(/class="alpha-product-slide"/g)||[]).length,2);assert(sliderHome.text.includes('data-interval="2000"')&&sliderHome.text.includes('data-effect="slide"'));
- const firstSlide=sliderHome.text.split('class="alpha-product-slide"')[1].split('</article>')[0];assert(firstSlide.includes('?page=product&amp;id=1')||firstSlide.includes('?page=product&id=1'),'old article republished into first slot');
+ const sliderHome=await request('',buyer);assert.equal((sliderHome.text.match(/class="alpha-company-slide"/g)||[]).length,3);assert(sliderHome.text.includes('data-interval="2000"')&&sliderHome.text.includes('data-effect="slide"'));
+ const companyHero=sliderHome.text.split('class="alpha-company-carousel"')[1].split('</section>')[0];assert(!companyHero.includes('?page=product'),'published products do not replace company identity');
+ assert.equal((await request('admin.php?page=themes',admin,{action:'store_theme',theme:'classic',csrf:csrf(sliderPage.text)})).status,303);
+ const legacyHome=await request('',buyer);const firstSlide=legacyHome.text.split('class="hero-slide ')[1].split('</article>')[0];assert(firstSlide.includes('?page=product&amp;id=1')||firstSlide.includes('?page=product&id=1'),'old product publication still serves legacy themes');
+ assert.equal((await request('admin.php?page=themes',admin,{action:'store_theme',theme:'alpha-hybrid',csrf:csrf(sliderPage.text)})).status,303);
  const brandCatalog=await request('?brand=1',buyer);assert.equal(brandCatalog.status,200);assert(!brandCatalog.text.includes('class="alpha-company-carousel'));assert(brandCatalog.text.includes('MAXXT'));
  assert.equal((await request('admin.php?page=brands',admin,{action:'brand',id:'1',name:'MAXXT',slug:'maxxt',logo_url:'assets/alpha/brand-maxxt.png',website:'https://maxxttools.com/',logo_dark:'1',sort_order:'10',active:'on',show_on_home:'on',csrf:csrf(brandPage.text)})).status,303);
  assert.equal((await request('admin.php?page=brands',admin,{action:'brand',id:'1',name:'MAXXT',slug:'maxxt',logo_url:'javascript:alert(1)',website:'https://maxxttools.com/',logo_dark:'1',sort_order:'10',csrf:csrf(brandPage.text)})).status,200,'invalid logo URL rejected');
