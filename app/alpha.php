@@ -19,6 +19,7 @@ function alphaCategoryLink(array $categories, string $slug): string {
 function alphaHero(): void {
     $categories=alphaCategories();
     $slides=[];
+    $defaultImages=['assets/alpha/hero-nijansa.jpg','assets/alpha/hero-lakirnica.jpg','assets/alpha/hero-finis.jpg'];
     $defaults=[
         ['title'=>'Pronađite savršenu nijansu','text'=>'Sve za profesionalno lakiranje i vrhunsku završnu obradu.','button'=>'Pogledaj ponudu'],
         ['title'=>'Profesionalno lakiranje','text'=>'Kvalitetni materijali i oprema za radionice koje traže pouzdan rezultat.','button'=>'Istraži proizvode'],
@@ -30,7 +31,7 @@ function alphaHero(): void {
             'text'=>setting('hero_slide_'.$i.'_text',$defaults[$i-1]['text']),
             'button'=>setting('hero_slide_'.$i.'_button',$defaults[$i-1]['button']),
             'url'=>setting('hero_slide_'.$i.'_url','?all=1#ponuda'),
-            'image'=>setting('hero_slide_'.$i.'_image',''),
+            'image'=>setting('hero_slide_'.$i.'_image',$defaultImages[$i-1]),
         ];
     }
     ?>

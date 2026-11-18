@@ -3,7 +3,7 @@ declare(strict_types=1);
 function productImage(string $url,string $field='image'):array {
     $upload=$_FILES[$field]??null;
     if(!$upload||($upload['error']??UPLOAD_ERR_NO_FILE)===UPLOAD_ERR_NO_FILE){
-        if($url!==''&&!preg_match('~^uploads/[a-f0-9]{32}\.(jpg|png|webp)$~D',$url)&&(!filter_var($url,FILTER_VALIDATE_URL)||!str_starts_with($url,'https://')))throw new RuntimeException('Slika mora imati HTTPS adresu ili biti postavljena kroz obrazac.');
+        if($url!==''&&!preg_match('~^(?:uploads/[a-f0-9]{32}\.(jpg|png|webp)|assets/alpha/[a-z0-9-]+\.(?:svg|png|jpe?g|webp))$~D',$url)&&(!filter_var($url,FILTER_VALIDATE_URL)||!str_starts_with($url,'https://')))throw new RuntimeException('Slika mora imati HTTPS adresu ili biti postavljena kroz obrazac.');
         return [$url,null];
     }
     if(($upload['error']??1)!==UPLOAD_ERR_OK||!is_uploaded_file($upload['tmp_name'])||(int)$upload['size']>5*1024*1024)throw new RuntimeException('Slika mora biti manja od 5 MB.');
