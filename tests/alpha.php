@@ -28,7 +28,7 @@ alphaExpect((int)query('SELECT COUNT(*) FROM products')->fetchColumn()===12,'rep
 alphaExpect((int)query('SELECT COUNT(*) FROM stock_movements')->fetchColumn()===12,'repeat demo import does not duplicate movements');
 $edited=query("SELECT price,stock FROM products WHERE sku='ALPHA-DEMO-001'")->fetch();
 alphaExpect($edited['price']==='321.12'&&(int)$edited['stock']===2,'repeat import preserves manually edited prices and stock');
-foreach(['alpha-pro'=>'Sve za va�u radionicu.','alpha-premium'=>'Perfekcija u svakom sloju.','alpha-hybrid'=>'Od pripreme do savr�enog sjaja.'] as $theme=>$headline){
+foreach(['alpha-pro'=>'Sve za vašu radionicu.','alpha-premium'=>'Perfekcija u svakom sloju.','alpha-hybrid'=>'Od pripreme do savršenog sjaja.'] as $theme=>$headline){
     $settings['store_theme']=$theme;
     alphaExpect(alphaTheme()&&storeTheme()===$theme,'theme allowlist: '.$theme);
     ob_start();alphaHero();$html=ob_get_clean();
